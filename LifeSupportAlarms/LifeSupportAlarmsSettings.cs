@@ -25,6 +25,18 @@ namespace LifeSupportAlarms
             toolTip = "0 = Do Nothing, 1 = Kill Warp, 2 = Pause Game")]
         public int AlarmAction = 1;
 
+        [GameParameters.CustomParameterUI("Supplies Alarm", toolTip = "Create alarms for Supplies depletion")]
+        public bool EnableSuppliesAlarm = true;
+
+        [GameParameters.CustomParameterUI("Electric Charge Alarm", toolTip = "Create alarms for Electric Charge depletion")]
+        public bool EnableECAlarm = true;
+
+        [GameParameters.CustomParameterUI("Hab Alarm", toolTip = "Create alarms for Hab time expiry")]
+        public bool EnableHabAlarm = true;
+
+        [GameParameters.CustomParameterUI("Home Alarm", toolTip = "Create alarms for Home time expiry")]
+        public bool EnableHomeAlarm = true;
+
         // Convenience accessor
         public static LifeSupportAlarmsSettings Instance
         {

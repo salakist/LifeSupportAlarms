@@ -56,14 +56,24 @@ namespace LifeSupportAlarms
                 if (vessel == null) continue;
 
                 // Supplies
-                double suppliesPerSec = cfg.SupplyAmount * vsl.NumCrew * vsl.RecyclerMultiplier;
-                double suppliesLeft   = ComputeSuppliesTime(vessel, vsl, now, suppliesPerSec);
-                SetOrRefreshAlarm("[USILS-Supplies]", vessel, suppliesLeft, now, leadTimeSecs, settings.AlarmAction);
+                if (settings.EnableSuppliesAlarm)
+                {
+                    double suppliesPerSec = cfg.SupplyAmount * vsl.NumCrew * vsl.RecyclerMultiplier;
+                    double suppliesLeft   = ComputeSuppliesTime(vessel, vsl, now, suppliesPerSec);
+                    SetOrRefreshAlarm("[USILS-Supplies]", vessel, suppliesLeft, now, leadTimeSecs, settings.AlarmAction);
+                }
+                else
+                    RemoveAlarm(vessel.persistentId, "[USILS-Supplies]");
 
                 // EC
-                double ecPerSec = cfg.ECAmount * vsl.NumCrew;
-                double ecLeft   = ComputeECTime(vessel, vsl, now, ecPerSec);
-                SetOrRefreshAlarm("[USILS-EC]", vessel, ecLeft, now, leadTimeSecs, settings.AlarmAction);
+                if (settings.EnableECAlarm)
+                {
+                    double ecPerSec = cfg.ECAmount * vsl.NumCrew;
+                    double ecLeft   = ComputeECTime(vessel, vsl, now, ecPerSec);
+                    SetOrRefreshAlarm("[USILS-EC]", vessel, ecLeft, now, leadTimeSecs, settings.AlarmAction);
+                }
+                else
+                    RemoveAlarm(vessel.persistentId, "[USILS-EC]");
 
                 // Hab and Home — computed per-crew, alarmed on the earliest expiry
                 bool   anyHabPenalty = false;
@@ -92,8 +102,15 @@ namespace LifeSupportAlarms
 
                 if (anyHabPenalty)
                 {
-                    SetOrRefreshAlarm("[USILS-Hab]",  vessel, earliestHab,  now, leadTimeSecs, settings.AlarmAction);
-                    SetOrRefreshAlarm("[USILS-Home]", vessel, earliestHome, now, leadTimeSecs, settings.AlarmAction);
+                    if (settings.EnableHabAlarm)
+                        SetOrRefreshAlarm("[USILS-Hab]",  vessel, earliestHab,  now, leadTimeSecs, settings.AlarmAction);
+                    else
+                        RemoveAlarm(vessel.persistentId, "[USILS-Hab]");
+
+                    if (settings.EnableHomeAlarm)
+                        SetOrRefreshAlarm("[USILS-Home]", vessel, earliestHome, now, leadTimeSecs, settings.AlarmAction);
+                    else
+                        RemoveAlarm(vessel.persistentId, "[USILS-Home]");
                 }
                 else
                 {

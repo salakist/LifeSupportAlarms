@@ -7,6 +7,7 @@ Instructions for AI coding agents working on the LifeSupportAlarms KSP mod.
 **LifeSupportAlarms** is a Kerbal Space Program plugin (C# / .NET 4.8) that reads life support expiry times from USI-LS (`LifeSupportManager`) and creates alarms in the stock KSP alarm clock (`AlarmClockScenario`) for all crewed vessels. It supports four resource types: Supplies, Electric Charge, Hab time, and Home time. Alarms fire a configurable number of hours before expiry.
 
 - KSP version: 1.12.x
+- Active in **Flight** and **Tracking Station** scenes
 - No dependency on AlarmEnhancements.dll — both mods write to the same stock KSP alarm clock API independently
 
 ## Repository Layout
@@ -54,7 +55,7 @@ msbuild LifeSupportAlarms.sln /p:Configuration=Release
 
 ## Key APIs
 
-- `KSPAddon(KSPAddon.Startup.Flight, false)` — Flight-scene-only MonoBehaviour entry point
+- `KSPAddon(KSPAddon.Startup.Flight, false)` / `KSPAddon.Startup.TrackingStation` — scene entry points. Both are thin subclasses of `LifeSupportAlarmsCore`. All logic lives in the core class.
 - `Debug.Log(string)` — KSP log output (appears in `KSP.log`)
 - `LifeSupportManager.Instance.VesselSupplyInfo` — list of `VesselSupplyStatus` for all tracked vessels
 - `VesselSupplyStatus` fields: `VesselId`, `VesselName`, `NumCrew`, `SuppliesLeft`, `LastFeeding`, `ECLeft`, `LastECCheck`, `RecyclerMultiplier`, `CachedHabTime`

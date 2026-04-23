@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace LifeSupportAlarms
 {
-    [KSPAddon(KSPAddon.Startup.Flight, false)]
-    public class LifeSupportAlarmsAddon : MonoBehaviour
+    // Shared logic — subclassed by the Flight and TrackingStation addons
+    public class LifeSupportAlarmsCore : MonoBehaviour
     {
         private const double AlarmTolerance = 60.0;    // 1 minute
         private const double FloatTolerance = 1e-6;
@@ -293,4 +293,12 @@ namespace LifeSupportAlarms
             return amount;
         }
     }
+
+    // ── Scene-specific entry points ──────────────────────────────────────────
+
+    [KSPAddon(KSPAddon.Startup.Flight, false)]
+    public class LifeSupportAlarmsFlightAddon : LifeSupportAlarmsCore { }
+
+    [KSPAddon(KSPAddon.Startup.TrackingStation, false)]
+    public class LifeSupportAlarmsTrackingAddon : LifeSupportAlarmsCore { }
 }

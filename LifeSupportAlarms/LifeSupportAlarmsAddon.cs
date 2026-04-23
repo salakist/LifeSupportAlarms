@@ -36,9 +36,9 @@ namespace LifeSupportAlarms
                 return;
             }
 
-            if (LifeSupportScenario.Instance == null)              return;
-            if (!LifeSupportScenario.Instance.settings.isLoaded()) return;
-            if (AlarmClockScenario.Instance  == null)              return;
+            if (ReferenceEquals(LifeSupportScenario.Instance, null)) { Debug.Log("[LifeSupportAlarms] Poll: LifeSupportScenario.Instance is truly null"); return; }
+            if (!LifeSupportScenario.Instance.settings.isLoaded()) { Debug.Log("[LifeSupportAlarms] Poll: settings not loaded"); return; }
+            if (AlarmClockScenario.Instance  == null)              { Debug.Log("[LifeSupportAlarms] Poll: AlarmClockScenario.Instance is null"); return; }
 
             double leadTimeSecs = settings.LeadTimeHours * 3600.0;
 
@@ -47,6 +47,9 @@ namespace LifeSupportAlarms
 
             double now = Planetarium.GetUniversalTime();
             LifeSupportConfig cfg = LifeSupportScenario.Instance.settings.GetSettings();
+
+            Debug.Log(string.Format("[LifeSupportAlarms] Poll: {0} vessel supply records, {1} FlightGlobals vessels",
+                lsm.VesselSupplyInfo.Count, FlightGlobals.Vessels.Count));
 
             foreach (VesselSupplyStatus vsl in lsm.VesselSupplyInfo)
             {
@@ -243,6 +246,11 @@ namespace LifeSupportAlarms
             AlarmClockScenario.AddAlarm(alarm);
             // AddAlarm resets title to vessel name; set it after the call
             alarm.title = expectedTitle;
+            // The alarm list UI doesn't update titles on the fly — force a refresh
+            // by adding and immediately deleting a fake alarm (same trick used by AlarmEnhancements)
+            AlarmTypeRaw fake = new AlarmTypeRaw { ut = alarm.ut + 1, actions = { message = AlarmActions.MessageEnum.No, deleteWhenDone = true } };
+            AlarmClockScenario.AddAlarm(fake);
+            AlarmClockScenario.DeleteAlarm(fake);
             Debug.Log(string.Format("[LifeSupportAlarms] Alarm set: '{0}' at UT {1:F0}", expectedTitle, alarmUT));
         }
 

@@ -11,7 +11,7 @@ namespace LifeSupportAlarms
         private const double FloatTolerance = 1e-6;
 
         private static readonly string[] AlarmPrefixes =
-            { "[USILS-Supplies]", "[USILS-EC]", "[USILS-Hab]", "[USILS-Home]" };
+            { "[USILS-Supplies]", "[USILS-EC]", "[USILS-Hab]", "[USILS-Home]", "[USILS-Grouped]" };
 
         public void Start()
         {
@@ -56,30 +56,25 @@ namespace LifeSupportAlarms
                 if (vessel == null) continue;
 
                 // Supplies
+                double suppliesLeft = double.PositiveInfinity;
                 if (settings.EnableSuppliesAlarm)
                 {
                     double suppliesPerSec = cfg.SupplyAmount * vsl.NumCrew * vsl.RecyclerMultiplier;
-                    double suppliesLeft   = ComputeSuppliesTime(vessel, vsl, now, suppliesPerSec);
-                    SetOrRefreshAlarm("[USILS-Supplies]", vessel, suppliesLeft, now, leadTimeSecs, settings.AlarmAction);
+                    suppliesLeft = ComputeSuppliesTime(vessel, vsl, now, suppliesPerSec);
                 }
-                else
-                    RemoveAlarm(vessel.persistentId, "[USILS-Supplies]");
 
                 // EC
+                double ecLeft = double.PositiveInfinity;
                 if (settings.EnableECAlarm)
                 {
                     double ecPerSec = cfg.ECAmount * vsl.NumCrew;
-                    double ecLeft   = ComputeECTime(vessel, vsl, now, ecPerSec);
-                    SetOrRefreshAlarm("[USILS-EC]", vessel, ecLeft, now, leadTimeSecs, settings.AlarmAction);
+                    ecLeft = ComputeECTime(vessel, vsl, now, ecPerSec);
                 }
-                else
-                    RemoveAlarm(vessel.persistentId, "[USILS-EC]");
 
                 // Hab and Home — computed per-crew, alarmed on the earliest expiry
                 bool   anyHabPenalty = false;
                 double earliestHab   = double.PositiveInfinity;
                 double earliestHome  = double.PositiveInfinity;
-                // CachedHabTime is set by GetTotalHabTime (internal) each time USI-LS polls
                 double habTotal      = vsl.CachedHabTime;
 
                 var crew = vessel.GetVesselCrew();
@@ -100,22 +95,65 @@ namespace LifeSupportAlarms
                         earliestHome = Math.Min(earliestHome, homeLeft);
                 }
 
-                if (anyHabPenalty)
+                if (!anyHabPenalty)
                 {
-                    if (settings.EnableHabAlarm)
-                        SetOrRefreshAlarm("[USILS-Hab]",  vessel, earliestHab,  now, leadTimeSecs, settings.AlarmAction);
-                    else
-                        RemoveAlarm(vessel.persistentId, "[USILS-Hab]");
+                    earliestHab  = double.PositiveInfinity;
+                    earliestHome = double.PositiveInfinity;
+                }
 
-                    if (settings.EnableHomeAlarm)
-                        SetOrRefreshAlarm("[USILS-Home]", vessel, earliestHome, now, leadTimeSecs, settings.AlarmAction);
-                    else
-                        RemoveAlarm(vessel.persistentId, "[USILS-Home]");
+                if (settings.GroupAlarmsByVessel)
+                {
+                    // Remove all individual alarms
+                    RemoveAlarm(vessel.persistentId, "[USILS-Supplies]");
+                    RemoveAlarm(vessel.persistentId, "[USILS-EC]");
+                    RemoveAlarm(vessel.persistentId, "[USILS-Hab]");
+                    RemoveAlarm(vessel.persistentId, "[USILS-Home]");
+
+                    // Find earliest enabled resource
+                    double earliest = double.PositiveInfinity;
+                    string criticalLabel = "";
+                    if (settings.EnableSuppliesAlarm  && suppliesLeft  < earliest) { earliest = suppliesLeft;  criticalLabel = "Supplies"; }
+                    if (settings.EnableECAlarm         && ecLeft        < earliest) { earliest = ecLeft;        criticalLabel = "Electric Charge"; }
+                    if (settings.EnableHabAlarm        && earliestHab   < earliest) { earliest = earliestHab;   criticalLabel = "Hab"; }
+                    if (settings.EnableHomeAlarm       && earliestHome  < earliest) { earliest = earliestHome;  criticalLabel = "Home"; }
+
+                    SetOrRefreshGroupedAlarm(vessel, earliest, criticalLabel, now, leadTimeSecs, settings.AlarmAction);
                 }
                 else
                 {
-                    RemoveAlarm(vessel.persistentId, "[USILS-Hab]");
-                    RemoveAlarm(vessel.persistentId, "[USILS-Home]");
+                    // Remove grouped alarm
+                    RemoveAlarm(vessel.persistentId, "[USILS-Grouped]");
+
+                    // Supplies
+                    if (settings.EnableSuppliesAlarm)
+                        SetOrRefreshAlarm("[USILS-Supplies]", vessel, suppliesLeft, now, leadTimeSecs, settings.AlarmAction);
+                    else
+                        RemoveAlarm(vessel.persistentId, "[USILS-Supplies]");
+
+                    // EC
+                    if (settings.EnableECAlarm)
+                        SetOrRefreshAlarm("[USILS-EC]", vessel, ecLeft, now, leadTimeSecs, settings.AlarmAction);
+                    else
+                        RemoveAlarm(vessel.persistentId, "[USILS-EC]");
+
+                    // Hab
+                    if (anyHabPenalty)
+                    {
+                        if (settings.EnableHabAlarm)
+                            SetOrRefreshAlarm("[USILS-Hab]",  vessel, earliestHab,  now, leadTimeSecs, settings.AlarmAction);
+                        else
+                            RemoveAlarm(vessel.persistentId, "[USILS-Hab]");
+
+                        if (settings.EnableHomeAlarm)
+                            SetOrRefreshAlarm("[USILS-Home]", vessel, earliestHome, now, leadTimeSecs, settings.AlarmAction);
+                        else
+                            RemoveAlarm(vessel.persistentId, "[USILS-Home]");
+                    }
+                    else
+                    {
+                        RemoveAlarm(vessel.persistentId, "[USILS-Hab]");
+                        RemoveAlarm(vessel.persistentId, "[USILS-Home]");
+                    }
                 }
             }
         }
@@ -150,8 +188,23 @@ namespace LifeSupportAlarms
 
         // ── Alarm lifecycle ─────────────────────────────────────────────────
 
+        private void SetOrRefreshGroupedAlarm(Vessel vessel, double timeLeft, string criticalLabel,
+            double now, double leadTimeSecs, int alarmAction)
+        {
+            string expectedTitle = vessel.vesselName + (criticalLabel.Length > 0 ? " (" + criticalLabel + ")" : "");
+            SetOrRefreshAlarmCore("[USILS-Grouped]", vessel, expectedTitle, timeLeft, now, leadTimeSecs, alarmAction);
+        }
+
         private void SetOrRefreshAlarm(string prefix, Vessel vessel, double timeLeft, double now,
             double leadTimeSecs, int alarmAction)
+        {
+            string label         = prefix.Trim('[', ']').Replace("USILS-", "").Replace("EC", "Electric Charge");
+            string expectedTitle = vessel.vesselName + " " + label;
+            SetOrRefreshAlarmCore(prefix, vessel, expectedTitle, timeLeft, now, leadTimeSecs, alarmAction);
+        }
+
+        private void SetOrRefreshAlarmCore(string prefix, Vessel vessel, string expectedTitle,
+            double timeLeft, double now, double leadTimeSecs, int alarmAction)
         {
             // Indefinite, NaN, or already expired → ensure no alarm exists
             if (double.IsPositiveInfinity(timeLeft) || double.IsNaN(timeLeft) || timeLeft <= 0)
@@ -172,12 +225,6 @@ namespace LifeSupportAlarms
             AlarmActions.WarpEnum warpAction = alarmAction == 0
                 ? AlarmActions.WarpEnum.DoNothing
                 : AlarmActions.WarpEnum.KillWarp;
-            AlarmActions.MessageEnum msgAction = alarmAction == 2
-                ? AlarmActions.MessageEnum.Yes
-                : AlarmActions.MessageEnum.Yes;
-
-            string label         = prefix.Trim('[', ']').Replace("USILS-", "").Replace("EC", "Electric Charge");
-            string expectedTitle = vessel.vesselName + " " + label;
 
             AlarmTypeRaw existing = FindAlarm(vessel.persistentId, prefix);
             if (existing != null && Math.Abs(existing.ut - alarmUT) < AlarmTolerance && existing.title == expectedTitle)
@@ -189,7 +236,7 @@ namespace LifeSupportAlarms
             AlarmTypeRaw alarm = new AlarmTypeRaw
             {
                 description = prefix + ":" + vessel.id,
-                actions     = { warp = warpAction, message = msgAction },
+                actions     = { warp = warpAction, message = AlarmActions.MessageEnum.Yes },
                 ut          = alarmUT,
                 vesselId    = vessel.persistentId
             };

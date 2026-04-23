@@ -37,6 +37,10 @@ namespace LifeSupportAlarms
         [GameParameters.CustomParameterUI("Home Alarm", toolTip = "Create alarms for Home time expiry")]
         public bool EnableHomeAlarm = true;
 
+        [GameParameters.CustomParameterUI("Group Alarms by Vessel",
+            toolTip = "Show one alarm per vessel (earliest resource) instead of one per resource")]
+        public bool GroupAlarmsByVessel = false;
+
         // Convenience accessor
         public static LifeSupportAlarmsSettings Instance
         {

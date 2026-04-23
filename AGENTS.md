@@ -62,7 +62,8 @@ msbuild LifeSupportAlarms.sln /p:Configuration=Release
 - `LifeSupportManager.GetNoHomeEffect(kerbalName)` — returns 0 when hab/home penalties are disabled for that kerbal
 - `AlarmClockScenario.AddAlarm(AlarmTypeBase)` / `DeleteAlarm(AlarmTypeBase)` — stock alarm clock CRUD
 - `AlarmTypeRaw` — generic alarm type used by this plugin; set `description`, `ut`, `vesselId`, `actions`, then assign `title` **after** `AddAlarm` (AddAlarm resets title to vessel name)
-- Alarm identity: `description` starts with prefix `[USILS-Supplies]`, `[USILS-EC]`, `[USILS-Hab]`, or `[USILS-Home]`; combined with `vesselId` for uniqueness
+- Alarm identity: `description` starts with prefix `[USILS-Supplies]`, `[USILS-EC]`, `[USILS-Hab]`, `[USILS-Home]`, or `[USILS-Grouped]`; combined with `vesselId` for uniqueness
+- Grouped mode (`GroupAlarmsByVessel = true`): one `[USILS-Grouped]` alarm per vessel showing the earliest-expiring enabled resource; title format `"{vesselName} ({criticalResource})"`. Individual resource alarms removed. Separate mode removes `[USILS-Grouped]`.
 - `GameParameters.CustomParameterNode` — base class for Difficulty settings pages; `HighLogic.CurrentGame.Parameters.CustomParams<T>()` to read at runtime
 - **C# language level**: use traditional `get { return ...; }` syntax for properties — expression-bodied members (`=>`) are not supported by the MSBuild/Roslyn version in use
 

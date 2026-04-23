@@ -7,9 +7,11 @@ namespace LifeSupportAlarms
     [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class LifeSupportAlarmsAddon : MonoBehaviour
     {
-        private const double LeadTimeSecs   = 21600.0; // 6 hours
         private const double AlarmTolerance = 60.0;    // 1 minute
         private const double FloatTolerance = 1e-6;
+
+        private static readonly string[] AlarmPrefixes =
+            { "[USILS-Supplies]", "[USILS-EC]", "[USILS-Hab]", "[USILS-Home]" };
 
         public void Start()
         {
@@ -21,9 +23,24 @@ namespace LifeSupportAlarms
 
         private void PollLifeSupport()
         {
+            LifeSupportAlarmsSettings settings = LifeSupportAlarmsSettings.Instance;
+            if (settings == null) return;
+
+            // When alarms are disabled, clear any we previously created and stop
+            if (!settings.EnableAlarms)
+            {
+                if (AlarmClockScenario.Instance != null)
+                    foreach (string prefix in AlarmPrefixes)
+                        foreach (Vessel v in FlightGlobals.Vessels)
+                            RemoveAlarm(v.persistentId, prefix);
+                return;
+            }
+
             if (LifeSupportScenario.Instance == null)              return;
             if (!LifeSupportScenario.Instance.settings.isLoaded()) return;
             if (AlarmClockScenario.Instance  == null)              return;
+
+            double leadTimeSecs = settings.LeadTimeHours * 3600.0;
 
             // LifeSupportManager.Instance auto-creates via lazy getter — do not null-check with Unity ==
             var lsm = LifeSupportManager.Instance;
@@ -41,12 +58,12 @@ namespace LifeSupportAlarms
                 // Supplies
                 double suppliesPerSec = cfg.SupplyAmount * vsl.NumCrew * vsl.RecyclerMultiplier;
                 double suppliesLeft   = ComputeSuppliesTime(vessel, vsl, now, suppliesPerSec);
-                SetOrRefreshAlarm("[USILS-Supplies]", vessel, suppliesLeft, now);
+                SetOrRefreshAlarm("[USILS-Supplies]", vessel, suppliesLeft, now, leadTimeSecs, settings.AlarmAction);
 
                 // EC
                 double ecPerSec = cfg.ECAmount * vsl.NumCrew;
                 double ecLeft   = ComputeECTime(vessel, vsl, now, ecPerSec);
-                SetOrRefreshAlarm("[USILS-EC]", vessel, ecLeft, now);
+                SetOrRefreshAlarm("[USILS-EC]", vessel, ecLeft, now, leadTimeSecs, settings.AlarmAction);
 
                 // Hab and Home — computed per-crew, alarmed on the earliest expiry
                 bool   anyHabPenalty = false;
@@ -75,8 +92,8 @@ namespace LifeSupportAlarms
 
                 if (anyHabPenalty)
                 {
-                    SetOrRefreshAlarm("[USILS-Hab]",  vessel, earliestHab,  now);
-                    SetOrRefreshAlarm("[USILS-Home]", vessel, earliestHome, now);
+                    SetOrRefreshAlarm("[USILS-Hab]",  vessel, earliestHab,  now, leadTimeSecs, settings.AlarmAction);
+                    SetOrRefreshAlarm("[USILS-Home]", vessel, earliestHome, now, leadTimeSecs, settings.AlarmAction);
                 }
                 else
                 {
@@ -116,7 +133,8 @@ namespace LifeSupportAlarms
 
         // ── Alarm lifecycle ─────────────────────────────────────────────────
 
-        private void SetOrRefreshAlarm(string prefix, Vessel vessel, double timeLeft, double now)
+        private void SetOrRefreshAlarm(string prefix, Vessel vessel, double timeLeft, double now,
+            double leadTimeSecs, int alarmAction)
         {
             // Indefinite, NaN, or already expired → ensure no alarm exists
             if (double.IsPositiveInfinity(timeLeft) || double.IsNaN(timeLeft) || timeLeft <= 0)
@@ -125,7 +143,7 @@ namespace LifeSupportAlarms
                 return;
             }
 
-            double alarmUT = now + timeLeft - LeadTimeSecs;
+            double alarmUT = now + timeLeft - leadTimeSecs;
 
             // Alarm would fire in the past → nothing useful to show
             if (alarmUT <= now)
@@ -133,6 +151,13 @@ namespace LifeSupportAlarms
                 RemoveAlarm(vessel.persistentId, prefix);
                 return;
             }
+
+            AlarmActions.WarpEnum warpAction = alarmAction == 0
+                ? AlarmActions.WarpEnum.DoNothing
+                : AlarmActions.WarpEnum.KillWarp;
+            AlarmActions.MessageEnum msgAction = alarmAction == 2
+                ? AlarmActions.MessageEnum.Yes
+                : AlarmActions.MessageEnum.Yes;
 
             string label         = prefix.Trim('[', ']').Replace("USILS-", "").Replace("EC", "Electric Charge");
             string expectedTitle = vessel.vesselName + " " + label;
@@ -147,7 +172,7 @@ namespace LifeSupportAlarms
             AlarmTypeRaw alarm = new AlarmTypeRaw
             {
                 description = prefix + ":" + vessel.id,
-                actions     = { warp = AlarmActions.WarpEnum.KillWarp, message = AlarmActions.MessageEnum.Yes },
+                actions     = { warp = warpAction, message = msgAction },
                 ut          = alarmUT,
                 vesselId    = vessel.persistentId
             };

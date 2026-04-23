@@ -36,9 +36,9 @@ namespace LifeSupportAlarms
                 return;
             }
 
-            if (ReferenceEquals(LifeSupportScenario.Instance, null)) { Debug.Log("[LifeSupportAlarms] Poll: LifeSupportScenario.Instance is truly null"); return; }
-            if (!LifeSupportScenario.Instance.settings.isLoaded()) { Debug.Log("[LifeSupportAlarms] Poll: settings not loaded"); return; }
-            if (AlarmClockScenario.Instance  == null)              { Debug.Log("[LifeSupportAlarms] Poll: AlarmClockScenario.Instance is null"); return; }
+            if (ReferenceEquals(LifeSupportScenario.Instance, null)) return;
+            if (!LifeSupportScenario.Instance.settings.isLoaded())       return;
+            if (AlarmClockScenario.Instance  == null)                     return;
 
             double leadTimeSecs = settings.LeadTimeHours * 3600.0;
 
@@ -47,9 +47,6 @@ namespace LifeSupportAlarms
 
             double now = Planetarium.GetUniversalTime();
             LifeSupportConfig cfg = LifeSupportScenario.Instance.settings.GetSettings();
-
-            Debug.Log(string.Format("[LifeSupportAlarms] Poll: {0} vessel supply records, {1} FlightGlobals vessels",
-                lsm.VesselSupplyInfo.Count, FlightGlobals.Vessels.Count));
 
             foreach (VesselSupplyStatus vsl in lsm.VesselSupplyInfo)
             {
@@ -335,10 +332,6 @@ namespace LifeSupportAlarms
             {
                 psm.targetScenes.Add(GameScenes.TRACKSTATION);
                 Debug.Log("[LifeSupportAlarms] Added TRACKINGSTATION to LifeSupportScenario target scenes.");
-            }
-            else
-            {
-                Debug.Log("[LifeSupportAlarms] TRACKINGSTATION already in LifeSupportScenario target scenes.");
             }
         }
     }

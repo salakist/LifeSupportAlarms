@@ -19,30 +19,46 @@ namespace LifeSupportAlarms
 
         // ── Main poll ───────────────────────────────────────────────────────
 
+        private int _pollCount = 0;
+
         private void PollLifeSupport()
         {
-            if (LifeSupportManager.Instance == null) return;
-            if (LifeSupportScenario.Instance == null) return;
-            if (AlarmClockScenario.Instance  == null) return;
+            _pollCount++;
+            bool verbose = (_pollCount <= 3) || (_pollCount % 30 == 0); // log first 3 + every 5 min
+
+            if (LifeSupportScenario.Instance == null)                   { if (verbose) Debug.Log("[LifeSupportAlarms] PollLifeSupport: LifeSupportScenario.Instance is null"); return; }
+            if (!LifeSupportScenario.Instance.settings.isLoaded())       { if (verbose) Debug.Log("[LifeSupportAlarms] PollLifeSupport: LifeSupportScenario settings not loaded yet"); return; }
+            if (AlarmClockScenario.Instance  == null)                    { if (verbose) Debug.Log("[LifeSupportAlarms] PollLifeSupport: AlarmClockScenario.Instance is null"); return; }
+
+            // LifeSupportManager.Instance auto-creates via lazy getter — do not null-check with Unity ==
+            var lsm = LifeSupportManager.Instance;
 
             double now = Planetarium.GetUniversalTime();
             LifeSupportConfig cfg = LifeSupportScenario.Instance.settings.GetSettings();
 
-            foreach (VesselSupplyStatus vsl in LifeSupportManager.Instance.VesselSupplyInfo)
+            var vesselInfoList = lsm.VesselSupplyInfo;
+            if (verbose) Debug.Log(string.Format("[LifeSupportAlarms] Poll #{0}: {1} tracked vessel(s)", _pollCount, vesselInfoList.Count));
+
+            foreach (VesselSupplyStatus vsl in vesselInfoList)
             {
-                if (vsl.NumCrew == 0) continue;
+                if (verbose) Debug.Log(string.Format("[LifeSupportAlarms]   Vessel '{0}' id={1} NumCrew={2} SuppliesLeft={3:F1} ECLeft={4:F1} CachedHabTime={5:F0}",
+                    vsl.VesselName, vsl.VesselId, vsl.NumCrew, vsl.SuppliesLeft, vsl.ECLeft, vsl.CachedHabTime));
+
+                if (vsl.NumCrew == 0) { if (verbose) Debug.Log("[LifeSupportAlarms]     -> skipped (NumCrew=0)"); continue; }
 
                 Vessel vessel = FindVessel(vsl.VesselId);
-                if (vessel == null) continue;
+                if (vessel == null) { if (verbose) Debug.Log("[LifeSupportAlarms]     -> skipped (vessel not found in FlightGlobals)"); continue; }
 
                 // Supplies
                 double suppliesPerSec = cfg.SupplyAmount * vsl.NumCrew * vsl.RecyclerMultiplier;
                 double suppliesLeft   = ComputeSuppliesTime(vessel, vsl, now, suppliesPerSec);
+                if (verbose) Debug.Log(string.Format("[LifeSupportAlarms]     Supplies: rate={0:F6}/s left={1:F0}s", suppliesPerSec, suppliesLeft));
                 SetOrRefreshAlarm("[USILS-Supplies]", vessel, suppliesLeft, now);
 
                 // EC
                 double ecPerSec = cfg.ECAmount * vsl.NumCrew;
                 double ecLeft   = ComputeECTime(vessel, vsl, now, ecPerSec);
+                if (verbose) Debug.Log(string.Format("[LifeSupportAlarms]     EC: rate={0:F4}/s left={1:F0}s", ecPerSec, ecLeft));
                 SetOrRefreshAlarm("[USILS-EC]", vessel, ecLeft, now);
 
                 // Hab and Home — computed per-crew, alarmed on the earliest expiry
@@ -118,6 +134,7 @@ namespace LifeSupportAlarms
             // Indefinite, NaN, or already expired → ensure no alarm exists
             if (double.IsPositiveInfinity(timeLeft) || double.IsNaN(timeLeft) || timeLeft <= 0)
             {
+                Debug.Log(string.Format("[LifeSupportAlarms] {0} {1}: timeLeft={2} -> no alarm (indefinite/expired)", prefix, vessel.vesselName, timeLeft));
                 RemoveAlarm(vessel.persistentId, prefix);
                 return;
             }
@@ -127,6 +144,7 @@ namespace LifeSupportAlarms
             // Alarm would fire in the past → nothing useful to show
             if (alarmUT <= now)
             {
+                Debug.Log(string.Format("[LifeSupportAlarms] {0} {1}: alarmUT={2:F0} <= now={3:F0} (timeLeft={4:F0}s < leadTime) -> no alarm", prefix, vessel.vesselName, alarmUT, now, timeLeft));
                 RemoveAlarm(vessel.persistentId, prefix);
                 return;
             }

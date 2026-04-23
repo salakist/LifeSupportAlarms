@@ -52,11 +52,13 @@
             <HintPath>..\..\..\KSP_x64_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
             <Private>False</Private>
         </Reference>
-        <Reference Include="USILifeSupport, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <Reference Include="USILifeSupport">
             <HintPath>..\..\..\GameData\UmbraSpaceIndustries\LifeSupport\USILifeSupport.dll</HintPath>
             <Private>False</Private>
-        </Reference>
-    </ItemGroup>
+        </Reference>        <Reference Include="UnityEngine.UI">
+            <HintPath>..\..\..\KSP_x64_Data\Managed\UnityEngine.UI.dll</HintPath>
+            <Private>False</Private>
+        </Reference>    </ItemGroup>
     <ItemGroup>
         <Compile Include="LifeSupportAlarmsAddon.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />

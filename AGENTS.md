@@ -49,13 +49,22 @@ msbuild LifeSupportAlarms.sln /p:Configuration=Release
 2. Launch KSP and load a save with a crewed vessel
 3. Enter the Flight scene
 4. Check `KSP.log` for `[LifeSupportAlarms] Loaded`
+5. Open **Settings → Difficulty** and verify a "Life Support Alarms" section exists with the three controls
+6. Change Lead Time and confirm alarm UTs shift on the next poll
 
 ## Key APIs
 
-_Expanded in Phase 2. See source files for details._
-
 - `KSPAddon(KSPAddon.Startup.Flight, false)` — Flight-scene-only MonoBehaviour entry point
 - `Debug.Log(string)` — KSP log output (appears in `KSP.log`)
+- `LifeSupportManager.Instance.VesselSupplyInfo` — list of `VesselSupplyStatus` for all tracked vessels
+- `VesselSupplyStatus` fields: `VesselId`, `VesselName`, `NumCrew`, `SuppliesLeft`, `LastFeeding`, `ECLeft`, `LastECCheck`, `RecyclerMultiplier`, `CachedHabTime`
+- `LifeSupportStatus` fields: `TimeEnteredVessel`, `MaxOffKerbinTime` (per-kerbal)
+- `LifeSupportManager.GetNoHomeEffect(kerbalName)` — returns 0 when hab/home penalties are disabled for that kerbal
+- `AlarmClockScenario.AddAlarm(AlarmTypeBase)` / `DeleteAlarm(AlarmTypeBase)` — stock alarm clock CRUD
+- `AlarmTypeRaw` — generic alarm type used by this plugin; set `description`, `ut`, `vesselId`, `actions`, then assign `title` **after** `AddAlarm` (AddAlarm resets title to vessel name)
+- Alarm identity: `description` starts with prefix `[USILS-Supplies]`, `[USILS-EC]`, `[USILS-Hab]`, or `[USILS-Home]`; combined with `vesselId` for uniqueness
+- `GameParameters.CustomParameterNode` — base class for Difficulty settings pages; `HighLogic.CurrentGame.Parameters.CustomParams<T>()` to read at runtime
+- **C# language level**: use traditional `get { return ...; }` syntax for properties — expression-bodied members (`=>`) are not supported by the MSBuild/Roslyn version in use
 
 ## Commit & PR Policy
 

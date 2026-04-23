@@ -149,25 +149,31 @@ namespace LifeSupportAlarms
                 return;
             }
 
+            string trimmed       = prefix.Trim('[', ']');
+            string noPrefix      = trimmed.Replace("USILS-", "");
+            string label         = noPrefix.Replace("EC", "Electric Charge");
+            string expectedTitle = vessel.vesselName + " " + label;
+            Debug.Log(string.Format("[LifeSupportAlarms] DEBUG title build: prefix='{0}' trimmed='{1}' noPrefix='{2}' label='{3}' expectedTitle='{4}'",
+                prefix, trimmed, noPrefix, label, expectedTitle));
+
             AlarmTypeRaw existing = FindAlarm(vessel.persistentId, prefix);
-            if (existing != null && Math.Abs(existing.ut - alarmUT) < AlarmTolerance)
+            if (existing != null && Math.Abs(existing.ut - alarmUT) < AlarmTolerance && existing.title == expectedTitle)
                 return; // already correct, skip update
 
             if (existing != null)
                 AlarmClockScenario.DeleteAlarm(existing);
 
-            string label = prefix.Trim('[', ']').Replace("USILS-", "");
             AlarmTypeRaw alarm = new AlarmTypeRaw
             {
-                title       = vessel.vesselName + " \u2013 " + label,
                 description = prefix + ":" + vessel.id,
                 actions     = { warp = AlarmActions.WarpEnum.KillWarp, message = AlarmActions.MessageEnum.Yes },
                 ut          = alarmUT,
                 vesselId    = vessel.persistentId
             };
             AlarmClockScenario.AddAlarm(alarm);
-            Debug.Log(string.Format("[LifeSupportAlarms] Alarm set: {0} for {1} at UT {2:F0}",
-                prefix, vessel.vesselName, alarmUT));
+            // AddAlarm resets title to vessel name; set it after the call
+            alarm.title = expectedTitle;
+            Debug.Log(string.Format("[LifeSupportAlarms] Alarm set: title='{0}' at UT {1:F0}", alarm.title, alarmUT));
         }
 
         private AlarmTypeRaw FindAlarm(uint vesselPersistentId, string prefix)

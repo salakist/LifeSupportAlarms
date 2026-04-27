@@ -29,7 +29,7 @@ namespace LifeSupportAlarms
         public bool EnableSuppliesAlarm = true;
 
         [GameParameters.CustomParameterUI("Electric Charge Alarm", toolTip = "Create alarms for Electric Charge depletion")]
-        public bool EnableECAlarm = true;
+        public bool EnableECAlarm = false;
 
         [GameParameters.CustomParameterUI("Hab Alarm", toolTip = "Create alarms for Hab time expiry")]
         public bool EnableHabAlarm = true;
@@ -39,7 +39,7 @@ namespace LifeSupportAlarms
 
         [GameParameters.CustomParameterUI("Group Alarms by Vessel",
             toolTip = "Show one alarm per vessel (earliest resource) instead of one per resource")]
-        public bool GroupAlarmsByVessel = false;
+        public bool GroupAlarmsByVessel = true;
 
         // Convenience accessor
         public static LifeSupportAlarmsSettings Instance

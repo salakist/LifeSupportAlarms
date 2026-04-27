@@ -32,10 +32,10 @@ Settings are found in-game under **Settings → Difficulty → Life Support Alar
 | Lead Time (hours) | 6 | How far ahead of resource expiry the alarm fires. |
 | Alarm Action | Kill Warp | What happens when an alarm triggers: Do Nothing, Kill Warp, or Pause Game. |
 | Supplies Alarm | On | Create alarms for Supplies depletion. |
-| Electric Charge Alarm | On | Create alarms for Electric Charge depletion. |
+| Electric Charge Alarm | Off | Create alarms for Electric Charge depletion. |
 | Hab Alarm | On | Create alarms for Hab time expiry. |
 | Home Alarm | On | Create alarms for Home time expiry. |
-| Group Alarms by Vessel | Off | Show one alarm per vessel (for the most critical resource) instead of one alarm per resource per vessel. |
+| Group Alarms by Vessel | On | Show one alarm per vessel (for the most critical resource) instead of one alarm per resource per vessel. |
 
 ## How it works
 

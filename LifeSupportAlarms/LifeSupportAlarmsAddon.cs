@@ -222,9 +222,13 @@ namespace LifeSupportAlarms
                 return;
             }
 
-            AlarmActions.WarpEnum warpAction = alarmAction == 0
-                ? AlarmActions.WarpEnum.DoNothing
-                : AlarmActions.WarpEnum.KillWarp;
+            AlarmActions.WarpEnum warpAction;
+            switch (alarmAction)
+            {
+                case 2:  warpAction = AlarmActions.WarpEnum.PauseGame; break;
+                case 1:  warpAction = AlarmActions.WarpEnum.KillWarp;  break;
+                default: warpAction = AlarmActions.WarpEnum.DoNothing; break;
+            }
 
             AlarmTypeRaw existing = FindAlarm(vessel.persistentId, prefix);
             if (existing != null && Math.Abs(existing.ut - alarmUT) < AlarmTolerance && existing.title == expectedTitle)

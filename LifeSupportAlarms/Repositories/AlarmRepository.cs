@@ -11,8 +11,6 @@ namespace LifeSupportAlarms.Repositories
     {
         private const double Tolerance = 60.0; // seconds — skip update if UT is within this margin
 
-        private static readonly string[] AllPrefixes = AlarmPrefixes.All;
-
         internal LifeSupportAlarm Find(uint vesselPersistentId, string prefix)
         {
             foreach (AlarmTypeBase alarm in AlarmClockScenario.Instance.alarms.Values)
@@ -92,7 +90,7 @@ namespace LifeSupportAlarms.Repositories
         internal void DeleteAll(IEnumerable<uint> vesselIds)
         {
             foreach (uint id in vesselIds)
-                foreach (string prefix in AllPrefixes)
+                foreach (string prefix in AlarmPrefixes.All)
                     Delete(id, prefix);
         }
     }

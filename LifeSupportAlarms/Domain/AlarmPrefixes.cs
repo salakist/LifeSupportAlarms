@@ -10,6 +10,9 @@ namespace LifeSupportAlarms.Domain
         internal const string Home     = "[USILS-Home]";
         internal const string Grouped  = "[USILS-Grouped]";
 
+        internal static readonly string[] AllResources =
+            [Supplies, EC, Hab, Home];
+
         internal static readonly string[] All =
             [Supplies, EC, Hab, Home, Grouped];
     }

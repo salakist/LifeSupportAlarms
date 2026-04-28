@@ -8,7 +8,68 @@ namespace LifeSupportAlarms
     {
         private const double AlarmTolerance = 60.0; // 1 minute
 
-        internal static void SetOrRefreshGroupedAlarm(Vessel vessel, double timeLeft, string criticalLabel,
+        // Dispatches grouped or per-resource alarms for a single vessel based on computed times.
+        internal static void SyncAlarmsForVessel(
+            Vessel vessel, VesselResourceTimes times,
+            LifeSupportAlarmsSettings settings, double now, double leadTimeSecs)
+        {
+            if (settings.GroupAlarmsByVessel)
+            {
+                // Remove all individual alarms
+                RemoveAlarm(vessel.persistentId, "[USILS-Supplies]");
+                RemoveAlarm(vessel.persistentId, "[USILS-EC]");
+                RemoveAlarm(vessel.persistentId, "[USILS-Hab]");
+                RemoveAlarm(vessel.persistentId, "[USILS-Home]");
+
+                // Find earliest enabled resource
+                double earliest = double.PositiveInfinity;
+                string criticalLabel = "";
+                if (settings.EnableSuppliesAlarm  && times.SuppliesLeft  < earliest) { earliest = times.SuppliesLeft;  criticalLabel = "Supplies"; }
+                if (settings.EnableECAlarm         && times.ECLeft        < earliest) { earliest = times.ECLeft;        criticalLabel = "Electric Charge"; }
+                if (settings.EnableHabAlarm        && times.EarliestHab  < earliest) { earliest = times.EarliestHab;   criticalLabel = "Hab"; }
+                if (settings.EnableHomeAlarm       && times.EarliestHome < earliest) { earliest = times.EarliestHome;  criticalLabel = "Home"; }
+
+                SetOrRefreshGroupedAlarm(vessel, earliest, criticalLabel, now, leadTimeSecs, settings.AlarmAction);
+            }
+            else
+            {
+                // Remove grouped alarm
+                RemoveAlarm(vessel.persistentId, "[USILS-Grouped]");
+
+                // Supplies
+                if (settings.EnableSuppliesAlarm)
+                    SetOrRefreshAlarm("[USILS-Supplies]", vessel, times.SuppliesLeft, now, leadTimeSecs, settings.AlarmAction);
+                else
+                    RemoveAlarm(vessel.persistentId, "[USILS-Supplies]");
+
+                // EC
+                if (settings.EnableECAlarm)
+                    SetOrRefreshAlarm("[USILS-EC]", vessel, times.ECLeft, now, leadTimeSecs, settings.AlarmAction);
+                else
+                    RemoveAlarm(vessel.persistentId, "[USILS-EC]");
+
+                // Hab / Home
+                if (times.AnyHabPenalty)
+                {
+                    if (settings.EnableHabAlarm)
+                        SetOrRefreshAlarm("[USILS-Hab]",  vessel, times.EarliestHab,  now, leadTimeSecs, settings.AlarmAction);
+                    else
+                        RemoveAlarm(vessel.persistentId, "[USILS-Hab]");
+
+                    if (settings.EnableHomeAlarm)
+                        SetOrRefreshAlarm("[USILS-Home]", vessel, times.EarliestHome, now, leadTimeSecs, settings.AlarmAction);
+                    else
+                        RemoveAlarm(vessel.persistentId, "[USILS-Home]");
+                }
+                else
+                {
+                    RemoveAlarm(vessel.persistentId, "[USILS-Hab]");
+                    RemoveAlarm(vessel.persistentId, "[USILS-Home]");
+                }
+            }
+        }
+
+        private static void SetOrRefreshGroupedAlarm(Vessel vessel, double timeLeft, string criticalLabel,
             double now, double leadTimeSecs, int alarmAction)
         {
             string expectedTitle = vessel.vesselName + (criticalLabel.Length > 0 ? $" ({criticalLabel})" : "");
@@ -66,7 +127,7 @@ namespace LifeSupportAlarms
             AlarmClockScenario.AddAlarm(alarm);
             // AddAlarm resets title to vessel name; set it after the call
             alarm.title = expectedTitle;
-            // The alarm list UI doesn't update titles on the fly — force a refresh
+            // The alarm list UI doesn't update titles on the fly ï¿½ force a refresh
             // by adding and immediately deleting a fake alarm (same trick used by AlarmEnhancements)
             AlarmTypeRaw fake = new() { ut = alarm.ut + 1, actions = { message = AlarmActions.MessageEnum.No, deleteWhenDone = true } };
             AlarmClockScenario.AddAlarm(fake);

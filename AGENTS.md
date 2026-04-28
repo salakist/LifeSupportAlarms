@@ -14,28 +14,48 @@ Instructions for AI coding agents working on the LifeSupportAlarms KSP mod.
 
 ```
 GameData/LifeSupportAlarms/          ← git root, KSP mod folder, solution root
-├── .git/
+├── .editorconfig
 ├── .gitignore
-├── README.md
 ├── AGENTS.md                        ← this file
 ├── COMMIT_POLICY.md
+├── README.md
 ├── LifeSupportAlarms.dll            ← Release build output (gitignored)
 ├── LifeSupportAlarms.sln
 └── LifeSupportAlarms/               ← C# project folder
     ├── LifeSupportAlarms.csproj
-    ├── LifeSupportAlarmsAddon.cs
-    └── LifeSupportAlarmsSettings.cs (added in Phase 3)
+    ├── LifeSupportAlarmsAddon.cs    ← KSPAddon scene stubs + LifeSupportAlarmsScenarioRegistrar
+    ├── LifeSupportAlarmsCore.cs     ← MonoBehaviour base; pure poll loop only
+    ├── LifeSupportAlarmsSettings.cs ← GameParameters difficulty settings page
+    ├── Domain/
+    │   ├── TrackedVessel.cs         ← wraps Vessel + VesselSupplyStatus; owns GetResourceTimes()
+    │   ├── LifeSupportAlarm.cs      ← read-only DTO wrapping AlarmTypeRaw
+    │   └── VesselResourceTimes.cs  ← value object: computed remaining times per resource
+    ├── Repositories/
+    │   ├── VesselRepository.cs      ← GetCrewedVessels() iterator over USI-LS supply data
+    │   └── AlarmRepository.cs       ← CRUD wrapper over AlarmClockScenario
+    └── Services/
+        └── AlarmService.cs          ← grouped-vs-individual dispatch; ClearAll()
 ```
+
+## Architecture
+
+The plugin uses a 3-layer design. Each layer has its own `AGENTS.md` with detailed contracts.
+
+- **`LifeSupportAlarmsCore`** (project root) — pure poll loop, no domain logic. See [LifeSupportAlarms/AGENTS.md](LifeSupportAlarms/AGENTS.md).
+- **Domain** — `TrackedVessel`, `LifeSupportAlarm`, `VesselResourceTimes`. See [Domain/AGENTS.md](LifeSupportAlarms/Domain/AGENTS.md).
+- **Repositories** — `VesselRepository`, `AlarmRepository`. See [Repositories/AGENTS.md](LifeSupportAlarms/Repositories/AGENTS.md).
+- **Services** — `AlarmService`. See [Services/AGENTS.md](LifeSupportAlarms/Services/AGENTS.md).
 
 ## Build Commands
 
-Open `LifeSupportAlarms.sln` in Visual Studio and build with **Release** configuration.  
-The Release output path is set to `../` relative to the project folder, so `LifeSupportAlarms.dll` lands directly in `GameData/LifeSupportAlarms/` where KSP can load it.
+From the repo root (solution directory):
+```
+dotnet build LifeSupportAlarms\LifeSupportAlarms.csproj /p:Configuration=Release /v:minimal
+```
 
-Alternatively, from the solution directory:
-```
-msbuild LifeSupportAlarms.sln /p:Configuration=Release
-```
+The Release output path is `../` relative to the project folder, so `LifeSupportAlarms.dll` lands directly in `GameData/LifeSupportAlarms/` where KSP can load it.
+
+Do **not** use `msbuild.exe` from `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\` — it only understands C# 5 and will reject modern syntax. Always use `dotnet build`.
 
 ## KSP Environment
 
@@ -55,18 +75,11 @@ msbuild LifeSupportAlarms.sln /p:Configuration=Release
 
 ## Key APIs
 
-- `KSPAddon(KSPAddon.Startup.Flight, false)` / `KSPAddon.Startup.TrackingStation` — scene entry points. Both are thin subclasses of `LifeSupportAlarmsCore`. All logic lives in the core class.
-- `Debug.Log(string)` — KSP log output (appears in `KSP.log`)
-- `LifeSupportManager.Instance.VesselSupplyInfo` — list of `VesselSupplyStatus` for all tracked vessels
-- `VesselSupplyStatus` fields: `VesselId`, `VesselName`, `NumCrew`, `SuppliesLeft`, `LastFeeding`, `ECLeft`, `LastECCheck`, `RecyclerMultiplier`, `CachedHabTime`
-- `LifeSupportStatus` fields: `TimeEnteredVessel`, `MaxOffKerbinTime` (per-kerbal)
-- `LifeSupportManager.GetNoHomeEffect(kerbalName)` — returns 0 when hab/home penalties are disabled for that kerbal
-- `AlarmClockScenario.AddAlarm(AlarmTypeBase)` / `DeleteAlarm(AlarmTypeBase)` — stock alarm clock CRUD
-- `AlarmTypeRaw` — generic alarm type used by this plugin; set `description`, `ut`, `vesselId`, `actions`, then assign `title` **after** `AddAlarm` (AddAlarm resets title to vessel name)
-- Alarm identity: `description` starts with prefix `[USILS-Supplies]`, `[USILS-EC]`, `[USILS-Hab]`, `[USILS-Home]`, or `[USILS-Grouped]`; combined with `vesselId` for uniqueness
-- Grouped mode (`GroupAlarmsByVessel = true`): one `[USILS-Grouped]` alarm per vessel showing the earliest-expiring enabled resource; title format `"{vesselName} ({criticalResource})"`. Individual resource alarms removed. Separate mode removes `[USILS-Grouped]`.
-- `GameParameters.CustomParameterNode` — base class for Difficulty settings pages; `HighLogic.CurrentGame.Parameters.CustomParams<T>()` to read at runtime
-- **C# language level**: The csproj sets `<LangVersion>latest</LangVersion>` and uses `<FrameworkPathOverride>` to build against .NET Framework 4.8 with the modern Roslyn compiler (`dotnet build`). Current SDK is .NET 10, which gives **C# 13**. Modern syntax (switch expressions, pattern matching, record types, etc.) is fully supported. Use `dotnet build` — do **not** use the old `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe`, which only supports C# 5.
+See the sub-folder `AGENTS.md` files for layer-specific API details. A few project-wide notes:
+
+- `Debug.Log(string)` — KSP log output (appears in `KSP.log`); prefix every message with `[LifeSupportAlarms]`.
+- `LifeSupportAlarmsSettings.Instance` — convenience accessor; returns `null` when no game is loaded.
+- `GameParameters.CustomParameterNode` — base class for Difficulty settings pages; `HighLogic.CurrentGame.Parameters.CustomParams<T>()` to read at runtime.
 
 ## Commit & PR Policy
 

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using LifeSupport;
 using LifeSupportAlarms.Domain;
@@ -25,10 +26,12 @@ namespace LifeSupportAlarms.Repositories
         // Absorbed from VesselHelpers.FindVessel
         private static Vessel FindVessel(string vesselId)
         {
+            // Parse once to avoid per-vessel ToString allocation
+            if (!Guid.TryParse(vesselId, out Guid gid)) return null;
             List<Vessel> vessels = FlightGlobals.Vessels;
             for (int i = 0; i < vessels.Count; i++)
             {
-                if (vessels[i].id.ToString() == vesselId)
+                if (vessels[i].id == gid)
                     return vessels[i];
             }
             return null;

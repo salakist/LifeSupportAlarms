@@ -44,7 +44,7 @@ namespace LifeSupportAlarms.Services
                 if (enabled && time < earliest) { earliest = time; criticalLabel = label; }
 
             if (earliest < double.PositiveInfinity)
-                _repo.Upsert(LifeSupportAlarm.ForGrouped(vessel, earliest, criticalLabel),
+                _repo.Upsert(AlarmSpec.ForGrouped(vessel, earliest, criticalLabel),
                     now, leadTimeSecs, alarmAction);
             else
                 _repo.Delete(vessel.PersistentId, AlarmPrefixes.Grouped);
@@ -57,16 +57,16 @@ namespace LifeSupportAlarms.Services
             // Remove grouped alarm; maintain one alarm per resource type
             _repo.Delete(vessel.PersistentId, AlarmPrefixes.Grouped);
 
-            UpsertOrDelete(LifeSupportAlarm.ForResource(vessel, AlarmPrefixes.Supplies, times.SuppliesLeft),
+            UpsertOrDelete(AlarmSpec.ForResource(vessel, AlarmPrefixes.Supplies, times.SuppliesLeft),
                 settings.EnableSuppliesAlarm, now, leadTimeSecs, alarmAction);
-            UpsertOrDelete(LifeSupportAlarm.ForResource(vessel, AlarmPrefixes.EC, times.ECLeft),
+            UpsertOrDelete(AlarmSpec.ForResource(vessel, AlarmPrefixes.EC, times.ECLeft),
                 settings.EnableECAlarm, now, leadTimeSecs, alarmAction);
 
             if (times.AnyHabPenalty)
             {
-                UpsertOrDelete(LifeSupportAlarm.ForResource(vessel, AlarmPrefixes.Hab,  times.EarliestHab),
+                UpsertOrDelete(AlarmSpec.ForResource(vessel, AlarmPrefixes.Hab,  times.EarliestHab),
                     settings.EnableHabAlarm,  now, leadTimeSecs, alarmAction);
-                UpsertOrDelete(LifeSupportAlarm.ForResource(vessel, AlarmPrefixes.Home, times.EarliestHome),
+                UpsertOrDelete(AlarmSpec.ForResource(vessel, AlarmPrefixes.Home, times.EarliestHome),
                     settings.EnableHomeAlarm, now, leadTimeSecs, alarmAction);
             }
             else
@@ -89,7 +89,7 @@ namespace LifeSupportAlarms.Services
 
         // --- Private helpers -------------------------------------------------------------
 
-        private void UpsertOrDelete(LifeSupportAlarm spec, bool enabled,
+        private void UpsertOrDelete(AlarmSpec spec, bool enabled,
             double now, double leadTimeSecs, AlarmAction alarmAction)
         {
             if (enabled)

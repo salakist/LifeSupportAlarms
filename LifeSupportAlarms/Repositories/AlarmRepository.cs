@@ -11,7 +11,7 @@ namespace LifeSupportAlarms.Repositories
     {
         private const double Tolerance = 60.0; // seconds — skip update if UT is within this margin
 
-        internal LifeSupportAlarm Find(uint vesselPersistentId, string prefix)
+        internal FoundAlarm Find(uint vesselPersistentId, string prefix)
         {
             foreach (AlarmTypeBase alarm in AlarmClockScenario.Instance.alarms.Values)
             {
@@ -19,18 +19,21 @@ namespace LifeSupportAlarms.Repositories
                 if (raw == null) continue;
                 if (raw.vesselId != vesselPersistentId) continue;
                 if (raw.description != null && raw.description.StartsWith(prefix))
-                    return LifeSupportAlarm.FromExisting(raw, prefix);
+                    return new FoundAlarm(raw, prefix);
             }
             return null;
         }
 
         // Creates or refreshes the alarm described by spec. Skips the write if nothing has changed.
-        internal void Upsert(LifeSupportAlarm spec, double now, double leadTimeSecs, AlarmAction alarmAction)
+        internal void Upsert(AlarmSpec spec, double now, double leadTimeSecs, AlarmAction alarmAction)
         {
+            // Hoist Find so the result is shared by both the early-exit delete path and the stale check
+            FoundAlarm existing = Find(spec.VesselPersistentId, spec.Prefix);
+
             // Resource is indefinite, invalid, or already expired -- ensure no alarm exists
             if (double.IsPositiveInfinity(spec.TimeLeft) || double.IsNaN(spec.TimeLeft) || spec.TimeLeft <= 0)
             {
-                Delete(spec.VesselPersistentId, spec.Prefix);
+                if (existing != null) AlarmClockScenario.DeleteAlarm(existing.Raw);
                 return;
             }
 
@@ -39,7 +42,7 @@ namespace LifeSupportAlarms.Repositories
             // Alarm would fire in the past -- nothing useful to show
             if (alarmUT <= now)
             {
-                Delete(spec.VesselPersistentId, spec.Prefix);
+                if (existing != null) AlarmClockScenario.DeleteAlarm(existing.Raw);
                 return;
             }
 
@@ -50,10 +53,9 @@ namespace LifeSupportAlarms.Repositories
                 _                     => AlarmActions.WarpEnum.DoNothing
             };
 
-            LifeSupportAlarm existing = Find(spec.VesselPersistentId, spec.Prefix);
             if (existing != null
-                && Math.Abs(existing.ExistingUt - alarmUT) < Tolerance
-                && existing.ExistingTitle == spec.Title)
+                && Math.Abs(existing.Ut - alarmUT) < Tolerance
+                && existing.Title == spec.Title)
                 return; // already correct, no write needed
 
             if (existing != null)
@@ -82,10 +84,12 @@ namespace LifeSupportAlarms.Repositories
 
         internal void Delete(uint vesselPersistentId, string prefix)
         {
-            LifeSupportAlarm found = Find(vesselPersistentId, prefix);
+            FoundAlarm found = Find(vesselPersistentId, prefix);
             if (found != null)
                 AlarmClockScenario.DeleteAlarm(found.Raw);
         }
+
+        internal void Delete(FoundAlarm alarm) => Delete(alarm.VesselPersistentId, alarm.Prefix);
 
         internal void DeleteAll(IEnumerable<uint> vesselIds)
         {

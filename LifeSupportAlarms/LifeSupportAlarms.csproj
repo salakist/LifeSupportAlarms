@@ -65,7 +65,8 @@
     <ItemGroup>
         <Compile Include="Domain\AlarmAction.cs" />
         <Compile Include="Domain\AlarmPrefixes.cs" />
-        <Compile Include="Domain\LifeSupportAlarm.cs" />
+        <Compile Include="Domain\AlarmSpec.cs" />
+        <Compile Include="Domain\FoundAlarm.cs" />
         <Compile Include="Domain\TrackedVessel.cs" />
         <Compile Include="Domain\VesselResourceTimes.cs" />
         <Compile Include="LifeSupportAlarmsAddon.cs" />

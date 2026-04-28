@@ -22,28 +22,27 @@ namespace LifeSupportAlarms.Repositories
                 if (raw == null) continue;
                 if (raw.vesselId != vesselPersistentId) continue;
                 if (raw.description != null && raw.description.StartsWith(prefix))
-                    return new LifeSupportAlarm(raw, prefix);
+                    return LifeSupportAlarm.FromExisting(raw, prefix);
             }
             return null;
         }
 
-        // Creates or refreshes a single alarm. Skips the write if nothing has changed.
-        internal void Upsert(TrackedVessel vessel, string prefix, string title,
-            double timeLeft, double now, double leadTimeSecs, int alarmAction)
+        // Creates or refreshes the alarm described by spec. Skips the write if nothing has changed.
+        internal void Upsert(LifeSupportAlarm spec, double now, double leadTimeSecs, int alarmAction)
         {
             // Resource is indefinite, invalid, or already expired -- ensure no alarm exists
-            if (double.IsPositiveInfinity(timeLeft) || double.IsNaN(timeLeft) || timeLeft <= 0)
+            if (double.IsPositiveInfinity(spec.TimeLeft) || double.IsNaN(spec.TimeLeft) || spec.TimeLeft <= 0)
             {
-                Delete(vessel.PersistentId, prefix);
+                Delete(spec.VesselPersistentId, spec.Prefix);
                 return;
             }
 
-            double alarmUT = now + timeLeft - leadTimeSecs;
+            double alarmUT = now + spec.TimeLeft - leadTimeSecs;
 
             // Alarm would fire in the past -- nothing useful to show
             if (alarmUT <= now)
             {
-                Delete(vessel.PersistentId, prefix);
+                Delete(spec.VesselPersistentId, spec.Prefix);
                 return;
             }
 
@@ -54,10 +53,10 @@ namespace LifeSupportAlarms.Repositories
                 _ => AlarmActions.WarpEnum.DoNothing
             };
 
-            LifeSupportAlarm existing = Find(vessel.PersistentId, prefix);
+            LifeSupportAlarm existing = Find(spec.VesselPersistentId, spec.Prefix);
             if (existing != null
-                && Math.Abs(existing.Ut - alarmUT) < Tolerance
-                && existing.Title == title)
+                && Math.Abs(existing.ExistingUt - alarmUT) < Tolerance
+                && existing.ExistingTitle == spec.Title)
                 return; // already correct, no write needed
 
             if (existing != null)
@@ -65,14 +64,14 @@ namespace LifeSupportAlarms.Repositories
 
             AlarmTypeRaw alarm = new()
             {
-                description = prefix + ":" + vessel.Id,
+                description = spec.Prefix + ":" + spec.VesselGuid,
                 actions     = { warp = warpAction, message = AlarmActions.MessageEnum.Yes },
                 ut          = alarmUT,
-                vesselId    = vessel.PersistentId
+                vesselId    = spec.VesselPersistentId
             };
             AlarmClockScenario.AddAlarm(alarm);
             // AddAlarm resets title to vessel name; override it after the call
-            alarm.title = title;
+            alarm.title = spec.Title;
             // Force alarm-list UI to refresh the title via a transient fake alarm
             AlarmTypeRaw fake = new()
             {
@@ -81,7 +80,7 @@ namespace LifeSupportAlarms.Repositories
             };
             AlarmClockScenario.AddAlarm(fake);
             AlarmClockScenario.DeleteAlarm(fake);
-            Debug.Log($"[LifeSupportAlarms] Alarm set: '{title}' at UT {alarmUT:F0}");
+            Debug.Log($"[LifeSupportAlarms] Alarm set: '{spec.Title}' at UT {alarmUT:F0}");
         }
 
         internal void Delete(uint vesselPersistentId, string prefix)

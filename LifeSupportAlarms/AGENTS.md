@@ -11,6 +11,12 @@ For project-wide context (build, KSP environment, commit policy) see the [root A
 | `LifeSupportAlarmsCore.cs` | `MonoBehaviour` base; **pure poll loop only** |
 | `LifeSupportAlarmsSettings.cs` | `GameParameters` difficulty page |
 | `Domain/` | Domain objects — see [Domain/AGENTS.md](Domain/AGENTS.md) |
+| `Domain/AlarmAction.cs` | Enum: `DoNothing` / `KillWarp` / `PauseGame` |
+| `Domain/AlarmPrefixes.cs` | Canonical prefix constants + `AllResources` / `All` arrays |
+| `Domain/AlarmSpec.cs` | Desired alarm state; `ForResource` / `ForGrouped` factories |
+| `Domain/FoundAlarm.cs` | Wraps existing `AlarmTypeRaw`; only `AlarmRepository` constructs |
+| `Domain/TrackedVessel.cs` | Central domain object; owns `GetResourceTimes()` |
+| `Domain/VesselResourceTimes.cs` | Value object: computed remaining times per resource |
 | `Repositories/` | CRUD wrappers — see [Repositories/AGENTS.md](Repositories/AGENTS.md) |
 | `Services/` | Dispatch logic — see [Services/AGENTS.md](Services/AGENTS.md) |
 

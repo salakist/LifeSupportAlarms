@@ -15,19 +15,21 @@ Holds an `AlarmRepository` field (injected via constructor). Created once in `Li
 
 ### `Sync(TrackedVessel vessel, VesselResourceTimes times, LifeSupportAlarmsSettings settings, double now, double leadTimeSecs)`
 
-Dispatches the correct set of alarms for one vessel. Two modes depending on `settings.GroupAlarmsByVessel`:
+Dispatches to `SyncGrouped` or `SyncIndividual` based on `settings.GroupAlarmsByVessel`. Cast `(AlarmAction)settings.AlarmAction` once per method at the top of each private handler (not in `Sync` itself).
 
-**Grouped mode** (`GroupAlarmsByVessel = true`):
-1. Delete all four individual-resource alarms (`[USILS-Supplies]`, `[USILS-EC]`, `[USILS-Hab]`, `[USILS-Home]`) for this vessel.
-2. Walk the four enabled resources in order (Supplies → EC → Hab → Home) and find the earliest `timeLeft` among those where the corresponding `Enable*Alarm` setting is `true`.
-3. `_repo.Upsert(vessel, "[USILS-Grouped]", title, earliest, now, leadTimeSecs, settings.AlarmAction)`
-   - Title format: `"{vessel.Name} ({criticalLabel})"` where `criticalLabel` is the name of the earliest resource (`"Supplies"`, `"Electric Charge"`, `"Hab"`, or `"Home"`). If nothing is enabled or all are `PositiveInfinity`, Upsert will guard-delete the alarm.
+### `SyncGrouped(...)`
 
-**Individual mode** (`GroupAlarmsByVessel = false`):
-1. Delete `[USILS-Grouped]` for this vessel.
-2. For Supplies and EC: call `UpsertOrDelete` (upsert if enabled, delete if not).
+1. Delete all per-resource alarms via `foreach (string prefix in AlarmPrefixes.AllResources) _repo.Delete(vessel.PersistentId, prefix)`.
+2. Build a `(bool enabled, double time, string label)[]` candidates table (one row per resource); iterate to find the row with the smallest `time` among enabled entries.
+3. If `earliest < double.PositiveInfinity`: `_repo.Upsert(AlarmSpec.ForGrouped(vessel, earliest, criticalLabel), ...)`.
+4. Else: `_repo.Delete(vessel.PersistentId, AlarmPrefixes.Grouped)`.
+
+### `SyncIndividual(...)`
+
+1. Delete `AlarmPrefixes.Grouped` for this vessel.
+2. For Supplies and EC: call `UpsertOrDelete`.
 3. For Hab and Home:
-   - If `times.AnyHabPenalty == false`: delete both `[USILS-Hab]` and `[USILS-Home]` unconditionally (no kerbal has the penalty active).
+   - If `times.AnyHabPenalty == false`: delete both `AlarmPrefixes.Hab` and `AlarmPrefixes.Home` unconditionally.
    - If `times.AnyHabPenalty == true`: call `UpsertOrDelete` for each, respecting `settings.EnableHabAlarm` / `settings.EnableHomeAlarm`.
 
 ### `ClearAll()`
@@ -43,13 +45,13 @@ Steps:
 
 | Prefix | Individual mode title | Grouped mode title |
 |---|---|---|
-| `[USILS-Supplies]` | `"{vesselName} Supplies"` | — |
-| `[USILS-EC]` | `"{vesselName} Electric Charge"` | — |
-| `[USILS-Hab]` | `"{vesselName} Hab"` | — |
-| `[USILS-Home]` | `"{vesselName} Home"` | — |
-| `[USILS-Grouped]` | — | `"{vesselName} ({criticalLabel})"` |
+| `AlarmPrefixes.Supplies` | `"{vesselName} Supplies"` | — |
+| `AlarmPrefixes.EC` | `"{vesselName} Electric Charge"` | — |
+| `AlarmPrefixes.Hab` | `"{vesselName} Hab"` | — |
+| `AlarmPrefixes.Home` | `"{vesselName} Home"` | — |
+| `AlarmPrefixes.Grouped` | — | `"{vesselName} ({criticalLabel})"` |
 
-`TitleFor(vesselName, prefix)` derives individual titles by stripping the brackets, removing `USILS-`, and replacing `EC` with `Electric Charge`.
+Title construction is owned by `AlarmSpec.ResourceTitle` (individual) and `AlarmSpec.ForGrouped` (grouped). `AlarmService` does not build title strings directly.
 
 ## Rules
 

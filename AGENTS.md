@@ -27,8 +27,11 @@ GameData/LifeSupportAlarms/          ← git root, KSP mod folder, solution root
     ├── LifeSupportAlarmsCore.cs     ← MonoBehaviour base; pure poll loop only
     ├── LifeSupportAlarmsSettings.cs ← GameParameters difficulty settings page
     ├── Domain/
+    │   ├── AlarmAction.cs           ← enum: DoNothing / KillWarp / PauseGame
+    │   ├── AlarmPrefixes.cs         ← canonical prefix constants + AllResources / All arrays
+    │   ├── AlarmSpec.cs             ← desired alarm state; ForResource / ForGrouped factories
+    │   ├── FoundAlarm.cs            ← wraps found AlarmTypeRaw; only AlarmRepository constructs
     │   ├── TrackedVessel.cs         ← wraps Vessel + VesselSupplyStatus; owns GetResourceTimes()
-    │   ├── LifeSupportAlarm.cs      ← read-only DTO wrapping AlarmTypeRaw
     │   └── VesselResourceTimes.cs  ← value object: computed remaining times per resource
     ├── Repositories/
     │   ├── VesselRepository.cs      ← GetCrewedVessels() iterator over USI-LS supply data
@@ -42,7 +45,7 @@ GameData/LifeSupportAlarms/          ← git root, KSP mod folder, solution root
 The plugin uses a 3-layer design. Each layer has its own `AGENTS.md` with detailed contracts.
 
 - **`LifeSupportAlarmsCore`** (project root) — pure poll loop, no domain logic. See [LifeSupportAlarms/AGENTS.md](LifeSupportAlarms/AGENTS.md).
-- **Domain** — `TrackedVessel`, `LifeSupportAlarm`, `VesselResourceTimes`. See [Domain/AGENTS.md](LifeSupportAlarms/Domain/AGENTS.md).
+- **Domain** — `TrackedVessel`, `AlarmSpec`, `FoundAlarm`, `AlarmPrefixes`, `AlarmAction`, `VesselResourceTimes`. See [Domain/AGENTS.md](LifeSupportAlarms/Domain/AGENTS.md).
 - **Repositories** — `VesselRepository`, `AlarmRepository`. See [Repositories/AGENTS.md](LifeSupportAlarms/Repositories/AGENTS.md).
 - **Services** — `AlarmService`. See [Services/AGENTS.md](LifeSupportAlarms/Services/AGENTS.md).
 

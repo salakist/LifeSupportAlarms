@@ -63,8 +63,12 @@
             <Private>False</Private>
         </Reference>    </ItemGroup>
     <ItemGroup>
+        <Compile Include="AlarmManager.cs" />
         <Compile Include="LifeSupportAlarmsAddon.cs" />
+        <Compile Include="LifeSupportAlarmsCore.cs" />
         <Compile Include="LifeSupportAlarmsSettings.cs" />
+        <Compile Include="ResourceTimeCalculator.cs" />
+        <Compile Include="VesselHelpers.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

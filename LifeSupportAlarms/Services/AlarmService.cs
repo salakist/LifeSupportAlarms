@@ -19,10 +19,8 @@ namespace LifeSupportAlarms.Services
             if (settings.GroupAlarmsByVessel)
             {
                 // Remove all per-resource alarms; maintain one grouped alarm per vessel
-                _repo.Delete(vessel.PersistentId, AlarmPrefixes.Supplies);
-                _repo.Delete(vessel.PersistentId, AlarmPrefixes.EC);
-                _repo.Delete(vessel.PersistentId, AlarmPrefixes.Hab);
-                _repo.Delete(vessel.PersistentId, AlarmPrefixes.Home);
+                foreach (string prefix in AlarmPrefixes.AllResources)
+                    _repo.Delete(vessel.PersistentId, prefix);
 
                 double earliest      = double.PositiveInfinity;
                 string criticalLabel = "";

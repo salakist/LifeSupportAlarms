@@ -58,3 +58,15 @@ In addition, AI-assisted commits must include `[copilot]` at the end of the comm
 ## No Force Push
 
 Do not force-push to `main` or any shared branch. Use `git revert` to undo merged changes.
+
+## Pre-Commit Build Check
+
+Before committing, always run a Release build and verify it produces **no errors and no warnings**:
+
+```
+dotnet build LifeSupportAlarms\LifeSupportAlarms.csproj /p:Configuration=Release /v:minimal
+```
+
+Do **not** use the old `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe` — it only supports C# 5 and will reject modern syntax.
+
+Any error or warning must be resolved before committing.

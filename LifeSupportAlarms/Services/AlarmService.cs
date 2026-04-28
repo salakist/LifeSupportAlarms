@@ -25,6 +25,7 @@ namespace LifeSupportAlarms.Services
         private void SyncGrouped(TrackedVessel vessel, VesselResourceTimes times,
             LifeSupportAlarmsSettings settings, double now, double leadTimeSecs)
         {
+            AlarmAction alarmAction = (AlarmAction)settings.AlarmAction;
             // Remove all per-resource alarms; maintain one grouped alarm per vessel
             foreach (string prefix in AlarmPrefixes.AllResources)
                 _repo.Delete(vessel.PersistentId, prefix);
@@ -44,7 +45,7 @@ namespace LifeSupportAlarms.Services
 
             if (earliest < double.PositiveInfinity)
                 _repo.Upsert(LifeSupportAlarm.ForGrouped(vessel, earliest, criticalLabel),
-                    now, leadTimeSecs, settings.AlarmAction);
+                    now, leadTimeSecs, alarmAction);
             else
                 _repo.Delete(vessel.PersistentId, AlarmPrefixes.Grouped);
         }
@@ -52,20 +53,21 @@ namespace LifeSupportAlarms.Services
         private void SyncIndividual(TrackedVessel vessel, VesselResourceTimes times,
             LifeSupportAlarmsSettings settings, double now, double leadTimeSecs)
         {
+            AlarmAction alarmAction = (AlarmAction)settings.AlarmAction;
             // Remove grouped alarm; maintain one alarm per resource type
             _repo.Delete(vessel.PersistentId, AlarmPrefixes.Grouped);
 
             UpsertOrDelete(LifeSupportAlarm.ForResource(vessel, AlarmPrefixes.Supplies, times.SuppliesLeft),
-                settings.EnableSuppliesAlarm, now, leadTimeSecs, settings.AlarmAction);
+                settings.EnableSuppliesAlarm, now, leadTimeSecs, alarmAction);
             UpsertOrDelete(LifeSupportAlarm.ForResource(vessel, AlarmPrefixes.EC, times.ECLeft),
-                settings.EnableECAlarm, now, leadTimeSecs, settings.AlarmAction);
+                settings.EnableECAlarm, now, leadTimeSecs, alarmAction);
 
             if (times.AnyHabPenalty)
             {
                 UpsertOrDelete(LifeSupportAlarm.ForResource(vessel, AlarmPrefixes.Hab,  times.EarliestHab),
-                    settings.EnableHabAlarm,  now, leadTimeSecs, settings.AlarmAction);
+                    settings.EnableHabAlarm,  now, leadTimeSecs, alarmAction);
                 UpsertOrDelete(LifeSupportAlarm.ForResource(vessel, AlarmPrefixes.Home, times.EarliestHome),
-                    settings.EnableHomeAlarm, now, leadTimeSecs, settings.AlarmAction);
+                    settings.EnableHomeAlarm, now, leadTimeSecs, alarmAction);
             }
             else
             {
@@ -88,7 +90,7 @@ namespace LifeSupportAlarms.Services
         // --- Private helpers -------------------------------------------------------------
 
         private void UpsertOrDelete(LifeSupportAlarm spec, bool enabled,
-            double now, double leadTimeSecs, int alarmAction)
+            double now, double leadTimeSecs, AlarmAction alarmAction)
         {
             if (enabled)
                 _repo.Upsert(spec, now, leadTimeSecs, alarmAction);

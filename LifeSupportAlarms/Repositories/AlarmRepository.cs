@@ -25,7 +25,7 @@ namespace LifeSupportAlarms.Repositories
         }
 
         // Creates or refreshes the alarm described by spec. Skips the write if nothing has changed.
-        internal void Upsert(LifeSupportAlarm spec, double now, double leadTimeSecs, int alarmAction)
+        internal void Upsert(LifeSupportAlarm spec, double now, double leadTimeSecs, AlarmAction alarmAction)
         {
             // Resource is indefinite, invalid, or already expired -- ensure no alarm exists
             if (double.IsPositiveInfinity(spec.TimeLeft) || double.IsNaN(spec.TimeLeft) || spec.TimeLeft <= 0)
@@ -45,9 +45,9 @@ namespace LifeSupportAlarms.Repositories
 
             AlarmActions.WarpEnum warpAction = alarmAction switch
             {
-                2 => AlarmActions.WarpEnum.PauseGame,
-                1 => AlarmActions.WarpEnum.KillWarp,
-                _ => AlarmActions.WarpEnum.DoNothing
+                AlarmAction.PauseGame => AlarmActions.WarpEnum.PauseGame,
+                AlarmAction.KillWarp  => AlarmActions.WarpEnum.KillWarp,
+                _                     => AlarmActions.WarpEnum.DoNothing
             };
 
             LifeSupportAlarm existing = Find(spec.VesselPersistentId, spec.Prefix);

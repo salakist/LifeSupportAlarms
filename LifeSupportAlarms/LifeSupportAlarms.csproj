@@ -63,13 +63,15 @@
             <Private>False</Private>
         </Reference>    </ItemGroup>
     <ItemGroup>
-        <Compile Include="AlarmManager.cs" />
+        <Compile Include="Domain\LifeSupportAlarm.cs" />
+        <Compile Include="Domain\TrackedVessel.cs" />
+        <Compile Include="Domain\VesselResourceTimes.cs" />
         <Compile Include="LifeSupportAlarmsAddon.cs" />
         <Compile Include="LifeSupportAlarmsCore.cs" />
         <Compile Include="LifeSupportAlarmsSettings.cs" />
-        <Compile Include="ResourceTimeCalculator.cs" />
-        <Compile Include="VesselHelpers.cs" />
-        <Compile Include="VesselResourceTimes.cs" />
+        <Compile Include="Repositories\AlarmRepository.cs" />
+        <Compile Include="Repositories\VesselRepository.cs" />
+        <Compile Include="Services\AlarmService.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

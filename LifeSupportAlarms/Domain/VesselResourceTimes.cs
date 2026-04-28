@@ -1,4 +1,4 @@
-namespace LifeSupportAlarms
+namespace LifeSupportAlarms.Domain
 {
     // Data carrier: computed remaining times for all life support resources on a vessel.
     // Times are in seconds; double.PositiveInfinity means the resource is not applicable

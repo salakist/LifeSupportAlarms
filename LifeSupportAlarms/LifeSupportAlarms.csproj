@@ -63,6 +63,7 @@
             <Private>False</Private>
         </Reference>    </ItemGroup>
     <ItemGroup>
+        <Compile Include="Domain\AlarmAction.cs" />
         <Compile Include="Domain\AlarmPrefixes.cs" />
         <Compile Include="Domain\LifeSupportAlarm.cs" />
         <Compile Include="Domain\TrackedVessel.cs" />

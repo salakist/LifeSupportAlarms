@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using LifeSupport;
-using LifeSupportAlarms;
 
 namespace LifeSupportAlarms.Domain
 {

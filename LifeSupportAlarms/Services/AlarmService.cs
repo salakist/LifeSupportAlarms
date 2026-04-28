@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using LifeSupportAlarms;
 using LifeSupportAlarms.Domain;
 using LifeSupportAlarms.Repositories;
 

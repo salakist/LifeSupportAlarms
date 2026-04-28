@@ -1,7 +1,7 @@
 root = true
 
 [*.cs]
-# Style preferences — control when suggestions trigger
+# Style preferences ï¿½ control when suggestions trigger
 dotnet_style_prefer_collection_expression                    = true
 csharp_style_prefer_collection_expression                    = when_types_loosely_match
 csharp_style_implicit_object_creation_when_type_is_apparent = true
@@ -11,5 +11,7 @@ csharp_style_expression_bodied_properties                    = true
 csharp_style_expression_bodied_accessors                     = true
 csharp_style_prefer_switch_expression                        = true
 
-# Escalate all analyzer diagnostics to warnings — no fixed list needed
+# Escalate all analyzer diagnostics to warnings ï¿½ no fixed list needed
 dotnet_analyzer_diagnostic.severity = warning
+# IDE0005 (unnecessary using) must be declared explicitly to surface at build time
+dotnet_diagnostic.IDE0005.severity = warning

@@ -2,17 +2,17 @@ namespace LifeSupportAlarms
 {
     public class LifeSupportAlarmsSettings : GameParameters.CustomParameterNode
     {
-        public override string Title { get { return "Life Support Alarms"; } }
+        public override string Title => "Life Support Alarms";
 
-        public override GameParameters.GameMode GameMode { get { return GameParameters.GameMode.ANY; } }
+        public override GameParameters.GameMode GameMode => GameParameters.GameMode.ANY;
 
-        public override string Section { get { return "Life Support Alarms"; } }
+        public override string Section => "Life Support Alarms";
 
-        public override string DisplaySection { get { return Section; } }
+        public override string DisplaySection => Section;
 
-        public override int SectionOrder { get { return 2; } }
+        public override int SectionOrder => 2;
 
-        public override bool HasPresets { get { return false; } }
+        public override bool HasPresets => false;
 
         [GameParameters.CustomParameterUI("Enable Alarms", toolTip = "Create and maintain life support alarms automatically")]
         public bool EnableAlarms = true;
@@ -46,7 +46,7 @@ namespace LifeSupportAlarms
         {
             get
             {
-                if (HighLogic.CurrentGame == null) return null;
+                if (HighLogic.CurrentGame == null)            return null;
                 if (HighLogic.CurrentGame.Parameters == null) return null;
                 return HighLogic.CurrentGame.Parameters.CustomParams<LifeSupportAlarmsSettings>();
             }

@@ -70,4 +70,39 @@ msbuild LifeSupportAlarms.sln /p:Configuration=Release
 
 ## Commit & PR Policy
 
-See [COMMIT_POLICY.md](COMMIT_POLICY.md).
+Full details in [COMMIT_POLICY.md](COMMIT_POLICY.md). The rules below are the ones most commonly violated — treat them as a pre-commit checklist.
+
+### Required commit message format
+
+```
+<type>(<scope>): <description> [copilot]
+```
+
+Every AI-assisted commit **must** include all three parts. No exceptions.
+
+- **type**: `feat` | `fix` | `docs` | `chore` | `refactor` | `test`
+- **scope**: the component changed, e.g. `plugin` | `settings` | `build` | `docs`
+- **description**: short imperative phrase, no trailing period
+- **`[copilot]`**: mandatory author tag on the subject line for all AI-assisted commits
+
+**Correct examples**
+```
+feat(plugin): add grouped alarm mode per vessel [copilot]
+fix(plugin): correct AlarmAction=2 pause behaviour [copilot]
+chore(build): enable C# latest via dotnet build [copilot]
+docs(agents): add pre-commit checklist [copilot]
+```
+
+**Wrong — do not do these**
+```
+Fix AlarmAction=2 not pausing the game          ← no type/scope, no [copilot]
+chore: enable C# latest via dotnet build        ← no scope, no [copilot]
+feat(plugin): add grouped alarm mode [copilot]. ← trailing period
+```
+
+### Pre-commit build check
+
+Run this and confirm zero errors, zero warnings before every commit:
+```
+dotnet build LifeSupportAlarms\LifeSupportAlarms.csproj /p:Configuration=Release /v:minimal
+```

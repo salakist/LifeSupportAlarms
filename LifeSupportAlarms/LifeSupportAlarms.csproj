@@ -12,6 +12,7 @@
         <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
         <LangVersion>latest</LangVersion>
         <FrameworkPathOverride>C:\Windows\Microsoft.NET\Framework64\v4.0.30319\</FrameworkPathOverride>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <FileAlignment>512</FileAlignment>
     </PropertyGroup>
     <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

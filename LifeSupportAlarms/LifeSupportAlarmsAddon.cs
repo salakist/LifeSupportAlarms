@@ -11,7 +11,7 @@ namespace LifeSupportAlarms
         private const double FloatTolerance = 1e-6;
 
         private static readonly string[] AlarmPrefixes =
-            { "[USILS-Supplies]", "[USILS-EC]", "[USILS-Hab]", "[USILS-Home]", "[USILS-Grouped]" };
+            ["[USILS-Supplies]", "[USILS-EC]", "[USILS-Hab]", "[USILS-Home]", "[USILS-Grouped]"];
 
         public void Start()
         {
@@ -160,7 +160,7 @@ namespace LifeSupportAlarms
 
         // ── Time computation helpers ────────────────────────────────────────
 
-        private double ComputeSuppliesTime(Vessel vessel, VesselSupplyStatus vsl, double now, double ratePerSec)
+        private static double ComputeSuppliesTime(Vessel vessel, VesselSupplyStatus vsl, double now, double ratePerSec)
         {
             if (ratePerSec <= FloatTolerance) return double.PositiveInfinity;
             double amount = GetResourceInVessel(vessel, "Supplies");
@@ -169,7 +169,7 @@ namespace LifeSupportAlarms
             return amount / ratePerSec;
         }
 
-        private double ComputeECTime(Vessel vessel, VesselSupplyStatus vsl, double now, double ratePerSec)
+        private static double ComputeECTime(Vessel vessel, VesselSupplyStatus vsl, double now, double ratePerSec)
         {
             if (ratePerSec <= FloatTolerance) return double.PositiveInfinity;
             double amount = GetResourceInVessel(vessel, "ElectricCharge");
@@ -179,7 +179,7 @@ namespace LifeSupportAlarms
         }
 
         // Returns true when the remaining time is so large USI-LS treats it as indefinite
-        private bool IsIndefinite(ProtoCrewMember c, double timeLeft, LifeSupportConfig cfg)
+        private static bool IsIndefinite(ProtoCrewMember c, double timeLeft, LifeSupportConfig cfg)
         {
             if (timeLeft >= cfg.PermaHabTime) return true;
             if (c.HasEffect("ExplorerSkill") && timeLeft >= cfg.ScoutHabTime) return true;
@@ -188,14 +188,14 @@ namespace LifeSupportAlarms
 
         // ── Alarm lifecycle ─────────────────────────────────────────────────
 
-        private void SetOrRefreshGroupedAlarm(Vessel vessel, double timeLeft, string criticalLabel,
+        private static void SetOrRefreshGroupedAlarm(Vessel vessel, double timeLeft, string criticalLabel,
             double now, double leadTimeSecs, int alarmAction)
         {
             string expectedTitle = vessel.vesselName + (criticalLabel.Length > 0 ? " (" + criticalLabel + ")" : "");
             SetOrRefreshAlarmCore("[USILS-Grouped]", vessel, expectedTitle, timeLeft, now, leadTimeSecs, alarmAction);
         }
 
-        private void SetOrRefreshAlarm(string prefix, Vessel vessel, double timeLeft, double now,
+        private static void SetOrRefreshAlarm(string prefix, Vessel vessel, double timeLeft, double now,
             double leadTimeSecs, int alarmAction)
         {
             string label         = prefix.Trim('[', ']').Replace("USILS-", "").Replace("EC", "Electric Charge");
@@ -203,7 +203,7 @@ namespace LifeSupportAlarms
             SetOrRefreshAlarmCore(prefix, vessel, expectedTitle, timeLeft, now, leadTimeSecs, alarmAction);
         }
 
-        private void SetOrRefreshAlarmCore(string prefix, Vessel vessel, string expectedTitle,
+        private static void SetOrRefreshAlarmCore(string prefix, Vessel vessel, string expectedTitle,
             double timeLeft, double now, double leadTimeSecs, int alarmAction)
         {
             // Indefinite, NaN, or already expired → ensure no alarm exists
@@ -236,7 +236,7 @@ namespace LifeSupportAlarms
             if (existing != null)
                 AlarmClockScenario.DeleteAlarm(existing);
 
-            AlarmTypeRaw alarm = new AlarmTypeRaw
+            AlarmTypeRaw alarm = new()
             {
                 description = prefix + ":" + vessel.id,
                 actions     = { warp = warpAction, message = AlarmActions.MessageEnum.Yes },
@@ -248,13 +248,13 @@ namespace LifeSupportAlarms
             alarm.title = expectedTitle;
             // The alarm list UI doesn't update titles on the fly — force a refresh
             // by adding and immediately deleting a fake alarm (same trick used by AlarmEnhancements)
-            AlarmTypeRaw fake = new AlarmTypeRaw { ut = alarm.ut + 1, actions = { message = AlarmActions.MessageEnum.No, deleteWhenDone = true } };
+            AlarmTypeRaw fake = new() { ut = alarm.ut + 1, actions = { message = AlarmActions.MessageEnum.No, deleteWhenDone = true } };
             AlarmClockScenario.AddAlarm(fake);
             AlarmClockScenario.DeleteAlarm(fake);
-            Debug.Log(string.Format("[LifeSupportAlarms] Alarm set: '{0}' at UT {1:F0}", expectedTitle, alarmUT));
+            Debug.Log($"[LifeSupportAlarms] Alarm set: '{expectedTitle}' at UT {alarmUT:F0}");
         }
 
-        private AlarmTypeRaw FindAlarm(uint vesselPersistentId, string prefix)
+        private static AlarmTypeRaw FindAlarm(uint vesselPersistentId, string prefix)
         {
             foreach (AlarmTypeBase alarm in AlarmClockScenario.Instance.alarms.Values)
             {
@@ -266,7 +266,7 @@ namespace LifeSupportAlarms
             return null;
         }
 
-        private void RemoveAlarm(uint vesselPersistentId, string prefix)
+        private static void RemoveAlarm(uint vesselPersistentId, string prefix)
         {
             AlarmTypeRaw found = FindAlarm(vesselPersistentId, prefix);
             if (found != null)
@@ -275,7 +275,7 @@ namespace LifeSupportAlarms
 
         // ── KSP helpers ─────────────────────────────────────────────────────
 
-        private Vessel FindVessel(string vesselId)
+        private static Vessel FindVessel(string vesselId)
         {
             var vessels = FlightGlobals.Vessels;
             for (int i = 0; i < vessels.Count; i++)
@@ -286,7 +286,7 @@ namespace LifeSupportAlarms
             return null;
         }
 
-        private double GetResourceInVessel(Vessel vessel, string resName)
+        private static double GetResourceInVessel(Vessel vessel, string resName)
         {
             if (vessel == null) return 0d;
             double amount = 0d;

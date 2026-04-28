@@ -66,7 +66,7 @@ msbuild LifeSupportAlarms.sln /p:Configuration=Release
 - Alarm identity: `description` starts with prefix `[USILS-Supplies]`, `[USILS-EC]`, `[USILS-Hab]`, `[USILS-Home]`, or `[USILS-Grouped]`; combined with `vesselId` for uniqueness
 - Grouped mode (`GroupAlarmsByVessel = true`): one `[USILS-Grouped]` alarm per vessel showing the earliest-expiring enabled resource; title format `"{vesselName} ({criticalResource})"`. Individual resource alarms removed. Separate mode removes `[USILS-Grouped]`.
 - `GameParameters.CustomParameterNode` — base class for Difficulty settings pages; `HighLogic.CurrentGame.Parameters.CustomParams<T>()` to read at runtime
-- **C# language level**: use traditional `get { return ...; }` syntax for properties — expression-bodied members (`=>`) are not supported by the MSBuild/Roslyn version in use
+- **C# language level**: The csproj sets `<LangVersion>latest</LangVersion>` and uses `<FrameworkPathOverride>` to build against .NET Framework 4.8 with the modern Roslyn compiler (`dotnet build`). Current SDK is .NET 10, which gives **C# 13**. Modern syntax (switch expressions, pattern matching, record types, etc.) is fully supported. Use `dotnet build` — do **not** use the old `C:\Windows\Microsoft.NET\Framework64\v4.0.30319\MSBuild.exe`, which only supports C# 5.
 
 ## Commit & PR Policy
 

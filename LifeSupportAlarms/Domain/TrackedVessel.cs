@@ -56,6 +56,7 @@ namespace LifeSupportAlarms.Domain
             double amount = GetResourceAmount("Supplies");
             return amount > FloatTolerance
                 ? amount / ratePerSec
+                // USI-LS stores remaining time at the last feeding tick; subtract elapsed time since then
                 : _supply.SuppliesLeft - (now - _supply.LastFeeding);
         }
 
@@ -65,6 +66,7 @@ namespace LifeSupportAlarms.Domain
             double amount = GetResourceAmount("ElectricCharge");
             return amount > FloatTolerance
                 ? amount / ratePerSec
+                // USI-LS stores remaining time at the last EC check tick; subtract elapsed time since then
                 : _supply.ECLeft - (now - _supply.LastECCheck);
         }
 

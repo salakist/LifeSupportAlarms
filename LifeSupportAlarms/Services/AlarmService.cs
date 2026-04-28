@@ -19,10 +19,10 @@ namespace LifeSupportAlarms.Services
             if (settings.GroupAlarmsByVessel)
             {
                 // Remove all per-resource alarms; maintain one grouped alarm per vessel
-                _repo.Delete(vessel.PersistentId, "[USILS-Supplies]");
-                _repo.Delete(vessel.PersistentId, "[USILS-EC]");
-                _repo.Delete(vessel.PersistentId, "[USILS-Hab]");
-                _repo.Delete(vessel.PersistentId, "[USILS-Home]");
+                _repo.Delete(vessel.PersistentId, AlarmPrefixes.Supplies);
+                _repo.Delete(vessel.PersistentId, AlarmPrefixes.EC);
+                _repo.Delete(vessel.PersistentId, AlarmPrefixes.Hab);
+                _repo.Delete(vessel.PersistentId, AlarmPrefixes.Home);
 
                 double earliest      = double.PositiveInfinity;
                 string criticalLabel = "";
@@ -31,30 +31,33 @@ namespace LifeSupportAlarms.Services
                 if (settings.EnableHabAlarm       && times.EarliestHab  < earliest) { earliest = times.EarliestHab;   criticalLabel = "Hab"; }
                 if (settings.EnableHomeAlarm      && times.EarliestHome < earliest) { earliest = times.EarliestHome;  criticalLabel = "Home"; }
 
-                _repo.Upsert(LifeSupportAlarm.ForGrouped(vessel, earliest, criticalLabel),
-                    now, leadTimeSecs, settings.AlarmAction);
+                if (earliest < double.PositiveInfinity)
+                    _repo.Upsert(LifeSupportAlarm.ForGrouped(vessel, earliest, criticalLabel),
+                        now, leadTimeSecs, settings.AlarmAction);
+                else
+                    _repo.Delete(vessel.PersistentId, AlarmPrefixes.Grouped);
             }
             else
             {
                 // Remove grouped alarm; maintain one alarm per resource type
-                _repo.Delete(vessel.PersistentId, "[USILS-Grouped]");
+                _repo.Delete(vessel.PersistentId, AlarmPrefixes.Grouped);
 
-                UpsertOrDelete(LifeSupportAlarm.ForResource(vessel, "[USILS-Supplies]", times.SuppliesLeft),
+                UpsertOrDelete(LifeSupportAlarm.ForResource(vessel, AlarmPrefixes.Supplies, times.SuppliesLeft),
                     settings.EnableSuppliesAlarm, now, leadTimeSecs, settings.AlarmAction);
-                UpsertOrDelete(LifeSupportAlarm.ForResource(vessel, "[USILS-EC]", times.ECLeft),
+                UpsertOrDelete(LifeSupportAlarm.ForResource(vessel, AlarmPrefixes.EC, times.ECLeft),
                     settings.EnableECAlarm, now, leadTimeSecs, settings.AlarmAction);
 
                 if (times.AnyHabPenalty)
                 {
-                    UpsertOrDelete(LifeSupportAlarm.ForResource(vessel, "[USILS-Hab]",  times.EarliestHab),
+                    UpsertOrDelete(LifeSupportAlarm.ForResource(vessel, AlarmPrefixes.Hab,  times.EarliestHab),
                         settings.EnableHabAlarm,  now, leadTimeSecs, settings.AlarmAction);
-                    UpsertOrDelete(LifeSupportAlarm.ForResource(vessel, "[USILS-Home]", times.EarliestHome),
+                    UpsertOrDelete(LifeSupportAlarm.ForResource(vessel, AlarmPrefixes.Home, times.EarliestHome),
                         settings.EnableHomeAlarm, now, leadTimeSecs, settings.AlarmAction);
                 }
                 else
                 {
-                    _repo.Delete(vessel.PersistentId, "[USILS-Hab]");
-                    _repo.Delete(vessel.PersistentId, "[USILS-Home]");
+                    _repo.Delete(vessel.PersistentId, AlarmPrefixes.Hab);
+                    _repo.Delete(vessel.PersistentId, AlarmPrefixes.Home);
                 }
             }
         }

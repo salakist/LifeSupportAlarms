@@ -11,8 +11,7 @@ namespace LifeSupportAlarms.Repositories
     {
         private const double Tolerance = 60.0; // seconds — skip update if UT is within this margin
 
-        private static readonly string[] AllPrefixes =
-            ["[USILS-Supplies]", "[USILS-EC]", "[USILS-Hab]", "[USILS-Home]", "[USILS-Grouped]"];
+        private static readonly string[] AllPrefixes = AlarmPrefixes.All;
 
         internal LifeSupportAlarm Find(uint vesselPersistentId, string prefix)
         {

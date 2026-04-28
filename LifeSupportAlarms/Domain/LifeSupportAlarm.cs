@@ -54,8 +54,16 @@ namespace LifeSupportAlarms.Domain
 
         // --- Private helpers ---------------------------------------------------------
 
-        // e.g. "[USILS-EC]" + "Kerbin Station 1" => "Kerbin Station 1 Electric Charge"
+        // Maps a known prefix to its human-readable resource label.
+        // Falls back to stripping the bracket/namespace decoration for any future prefix.
         private static string ResourceTitle(string vesselName, string prefix) =>
-            vesselName + " " + prefix.Trim('[', ']').Replace("USILS-", "").Replace("EC", "Electric Charge");
+            vesselName + " " + prefix switch
+            {
+                AlarmPrefixes.Supplies => "Supplies",
+                AlarmPrefixes.EC       => "Electric Charge",
+                AlarmPrefixes.Hab      => "Hab",
+                AlarmPrefixes.Home     => "Home",
+                _                      => prefix.Trim('[', ']').Replace("USILS-", "")
+            };
     }
 }

@@ -1,94 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-    <PropertyGroup>
-        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-        <ProjectGuid>{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}</ProjectGuid>
-        <OutputType>Library</OutputType>
-        <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>LifeSupportAlarms</RootNamespace>
-        <AssemblyName>LifeSupportAlarms</AssemblyName>
-        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-        <LangVersion>latest</LangVersion>
-        <FrameworkPathOverride>C:\Windows\Microsoft.NET\Framework64\v4.0.30319\</FrameworkPathOverride>
-        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-        <FileAlignment>512</FileAlignment>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-        <PlatformTarget>AnyCPU</PlatformTarget>
-        <DebugSymbols>true</DebugSymbols>
-        <DebugType>portable</DebugType>
-        <Optimize>false</Optimize>
-        <OutputPath>bin\Debug\</OutputPath>
-        <BaseIntermediateOutputPath>..\..\..\..\BuildTemp\LifeSupportAlarms\obj\</BaseIntermediateOutputPath>
-        <DefineConstants>DEBUG;TRACE</DefineConstants>
-        <ErrorReport>prompt</ErrorReport>
-        <WarningLevel>4</WarningLevel>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-        <PlatformTarget>AnyCPU</PlatformTarget>
-        <DebugType>pdbonly</DebugType>
-        <Optimize>true</Optimize>
-        <OutputPath>..\</OutputPath>
-        <BaseIntermediateOutputPath>..\..\..\..\BuildTemp\LifeSupportAlarms\obj\</BaseIntermediateOutputPath>
-        <DefineConstants>TRACE</DefineConstants>
-        <ErrorReport>prompt</ErrorReport>
-        <WarningLevel>4</WarningLevel>
-    </PropertyGroup>
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>LifeSupportAlarms</RootNamespace>
+    <AssemblyName>LifeSupportAlarms</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <LangVersion>latest</LangVersion>
+    <FrameworkPathOverride>C:\Windows\Microsoft.NET\Framework64\v4.0.30319\</FrameworkPathOverride>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>portable</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>..\</OutputPath>
+    <BaseIntermediateOutputPath>obj\</BaseIntermediateOutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\lib\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Core">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\lib\UnityEngine.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+      <HintPath>..\lib\UnityEngine.CoreModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="USILifeSupport">
+      <HintPath>..\lib\USILifeSupport.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>..\lib\UnityEngine.UI.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Domain\AlarmAction.cs" />
+    <Compile Include="Domain\AlarmPrefixes.cs" />
+    <Compile Include="Domain\AlarmSpec.cs" />
+    <Compile Include="Domain\FoundAlarm.cs" />
+    <Compile Include="Domain\TrackedVessel.cs" />
+    <Compile Include="Domain\VesselResourceTimes.cs" />
+    <Compile Include="LifeSupportAlarmsAddon.cs" />
+    <Compile Include="LifeSupportAlarmsCore.cs" />
+    <Compile Include="LifeSupportAlarmsSettings.cs" />
+    <Compile Include="Repositories\AlarmRepository.cs" />
+    <Compile Include="Repositories\VesselRepository.cs" />
+    <Compile Include="Services\AlarmService.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="CleanExtraOutputs" AfterTargets="Build">
     <ItemGroup>
-        <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>..\..\..\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
-            <Private>False</Private>
-        </Reference>
-        <Reference Include="System">
-            <Private>False</Private>
-        </Reference>
-        <Reference Include="System.Core">
-            <Private>False</Private>
-        </Reference>
-        <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>..\..\..\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
-            <Private>False</Private>
-        </Reference>
-        <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>..\..\..\KSP_x64_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
-            <Private>False</Private>
-        </Reference>
-        <Reference Include="USILifeSupport">
-            <HintPath>..\..\..\GameData\UmbraSpaceIndustries\LifeSupport\USILifeSupport.dll</HintPath>
-            <Private>False</Private>
-        </Reference>        <Reference Include="UnityEngine.UI">
-            <HintPath>..\..\..\KSP_x64_Data\Managed\UnityEngine.UI.dll</HintPath>
-            <Private>False</Private>
-        </Reference>    </ItemGroup>
-    <ItemGroup>
-        <Compile Include="Domain\AlarmAction.cs" />
-        <Compile Include="Domain\AlarmPrefixes.cs" />
-        <Compile Include="Domain\AlarmSpec.cs" />
-        <Compile Include="Domain\FoundAlarm.cs" />
-        <Compile Include="Domain\TrackedVessel.cs" />
-        <Compile Include="Domain\VesselResourceTimes.cs" />
-        <Compile Include="LifeSupportAlarmsAddon.cs" />
-        <Compile Include="LifeSupportAlarmsCore.cs" />
-        <Compile Include="LifeSupportAlarmsSettings.cs" />
-        <Compile Include="Repositories\AlarmRepository.cs" />
-        <Compile Include="Repositories\VesselRepository.cs" />
-        <Compile Include="Services\AlarmService.cs" />
-        <Compile Include="Properties\AssemblyInfo.cs" />
+      <ExtraFiles Include="$(OutputPath)*.pdb" />
+      <ExtraFiles Include="$(OutputPath)*.nlp" />
+      <ExtraFiles Include="$(OutputPath)mscorlib.dll" />
+      <ExtraFiles Include="$(OutputPath)fr\**\*" />
+      <!-- Remove old in-tree obj folder left from before BaseIntermediateOutputPath was redirected -->
+      <ExtraFiles Include="$(MSBuildProjectDirectory)\obj\**\*" />
     </ItemGroup>
-    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-    <Target Name="CleanExtraOutputs" AfterTargets="Build">
-        <ItemGroup>
-            <ExtraFiles Include="$(OutputPath)*.pdb" />
-            <ExtraFiles Include="$(OutputPath)*.nlp" />
-            <ExtraFiles Include="$(OutputPath)mscorlib.dll" />
-            <ExtraFiles Include="$(OutputPath)fr\**\*" />
-            <!-- Remove old in-tree obj folder left from before BaseIntermediateOutputPath was redirected -->
-            <ExtraFiles Include="$(MSBuildProjectDirectory)\obj\**\*" />
-        </ItemGroup>
-        <Delete Files="@(ExtraFiles)" />
-        <RemoveDir Directories="$(OutputPath)fr" ContinueOnError="true" />
-        <RemoveDir Directories="$(MSBuildProjectDirectory)\obj" ContinueOnError="true" />
-    </Target>
+    <Delete Files="@(ExtraFiles)" />
+    <RemoveDir Directories="$(OutputPath)fr" ContinueOnError="true" />
+    <RemoveDir Directories="$(MSBuildProjectDirectory)\obj" ContinueOnError="true" />
+  </Target>
 </Project>

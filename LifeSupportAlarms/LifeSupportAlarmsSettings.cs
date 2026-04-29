@@ -42,14 +42,7 @@ namespace LifeSupportAlarms
         public bool GroupAlarmsByVessel = true;
 
         // Convenience accessor
-        public static LifeSupportAlarmsSettings Instance
-        {
-            get
-            {
-                if (HighLogic.CurrentGame == null)            return null;
-                if (HighLogic.CurrentGame.Parameters == null) return null;
-                return HighLogic.CurrentGame.Parameters.CustomParams<LifeSupportAlarmsSettings>();
-            }
-        }
+        public static LifeSupportAlarmsSettings Instance =>
+            HighLogic.CurrentGame?.Parameters?.CustomParams<LifeSupportAlarmsSettings>();
     }
 }

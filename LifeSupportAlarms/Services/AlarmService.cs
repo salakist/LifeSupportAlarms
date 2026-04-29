@@ -32,13 +32,13 @@ namespace LifeSupportAlarms.Services
 
             (bool enabled, double time, string label)[] candidates =
             [
-                (settings.EnableSuppliesAlarm, times.SuppliesLeft,  "Supplies"),
-                (settings.EnableECAlarm,       times.ECLeft,        "Electric Charge"),
-                (settings.EnableHabAlarm,      times.EarliestHab,   "Hab"),
-                (settings.EnableHomeAlarm,     times.EarliestHome,  "Home"),
+                (settings.EnableSuppliesAlarm, times.SuppliesLeft, "Supplies"),
+                (settings.EnableECAlarm, times.ECLeft, "Electric Charge"),
+                (settings.EnableHabAlarm, times.EarliestHab, "Hab"),
+                (settings.EnableHomeAlarm, times.EarliestHome, "Home"),
             ];
 
-            double earliest      = double.PositiveInfinity;
+            double earliest = double.PositiveInfinity;
             string criticalLabel = "";
             foreach ((bool enabled, double time, string label) in candidates)
                 if (enabled && time < earliest) { earliest = time; criticalLabel = label; }
@@ -64,8 +64,8 @@ namespace LifeSupportAlarms.Services
 
             if (times.AnyHabPenalty)
             {
-                UpsertOrDelete(AlarmSpec.ForResource(vessel, AlarmPrefixes.Hab,  times.EarliestHab),
-                    settings.EnableHabAlarm,  now, leadTimeSecs, alarmAction);
+                UpsertOrDelete(AlarmSpec.ForResource(vessel, AlarmPrefixes.Hab, times.EarliestHab),
+                    settings.EnableHabAlarm, now, leadTimeSecs, alarmAction);
                 UpsertOrDelete(AlarmSpec.ForResource(vessel, AlarmPrefixes.Home, times.EarliestHome),
                     settings.EnableHomeAlarm, now, leadTimeSecs, alarmAction);
             }
@@ -81,7 +81,7 @@ namespace LifeSupportAlarms.Services
         {
             if (AlarmClockScenario.Instance == null) return;
 
-            var ids = new List<uint>();
+            List<uint> ids = [];
             foreach (Vessel v in FlightGlobals.Vessels)
                 ids.Add(v.persistentId);
             _repo.DeleteAll(ids);

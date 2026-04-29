@@ -11,7 +11,13 @@ csharp_style_expression_bodied_properties                    = true
 csharp_style_expression_bodied_accessors                     = true
 csharp_style_prefer_switch_expression                        = true
 
-# Escalate all analyzer diagnostics to warnings � no fixed list needed
+# Escalate all enabled analyzer diagnostics to warnings
 dotnet_analyzer_diagnostic.severity = warning
-# IDE0005 (unnecessary using) must be declared explicitly to surface at build time
-dotnet_diagnostic.IDE0005.severity = warning
+# Enable and escalate all Style-category IDE rules (IDE0001-IDE0xxx) at build time
+dotnet_analyzer_diagnostic.category-Style.severity = warning
+# Brace-free single-statement bodies (guard clauses, continue/return) are idiomatic
+csharp_prefer_braces = false
+# KSP API methods like AlarmClockScenario.AddAlarm/DeleteAlarm return bool; we don't use it
+dotnet_diagnostic.IDE0058.severity = none
+# PollLifeSupport is called via string reflection by Unity InvokeRepeating -- not actually unused
+dotnet_diagnostic.IDE0051.severity = none

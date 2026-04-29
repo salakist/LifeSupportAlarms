@@ -6,7 +6,7 @@ namespace LifeSupportAlarms.Domain
     internal enum AlarmAction
     {
         DoNothing = 0,
-        KillWarp  = 1,
+        KillWarp = 1,
         PauseGame = 2,
     }
 }

@@ -22,11 +22,15 @@ For project-wide context (build, KSP environment, commit policy) see the [root A
 
 ## C# conventions
 
-- **Language**: `<LangVersion>latest</LangVersion>` + `<FrameworkPathOverride>` → .NET 4.8 runtime, C# 13 compiler (SDK .NET 10). Modern syntax is fine: switch expressions, pattern matching, collection expressions, expression-bodied members, target-typed `new`.
+- **Language**: SDK-style project targeting `net48` (`<TargetFramework>net48</TargetFramework>`) → .NET 4.8 runtime, C# 13 compiler (SDK .NET 10). Modern syntax is fine: switch expressions, pattern matching, collection expressions, expression-bodied members, target-typed `new`.
 - **`record struct` is banned**: requires `IsExternalInit` which .NET 4.8 does not provide. Use `readonly struct` with an explicit constructor instead.
 - **Namespaces follow folders**: `LifeSupportAlarms` (root files), `LifeSupportAlarms.Domain`, `LifeSupportAlarms.Repositories`, `LifeSupportAlarms.Services`.
 - **`internal` by default**: everything is `internal` or `private` unless a KSP reflection requirement forces `public`. `MonoBehaviour` subclasses must be `public`.
-- **No unnecessary `using` directives**: `IDE0005` is enforced as a build warning via `.editorconfig`. Child namespaces implicitly see their parent namespace — no `using LifeSupportAlarms;` needed in `Domain/`, `Repositories/`, or `Services/`.
+- **Style rules at build time**: `EnforceCodeStyleInBuild=true` + `dotnet_analyzer_diagnostic.category-Style.severity = warning` surfaces all IDE style rules as build warnings. Active suppressions in `.editorconfig`:
+  - `csharp_prefer_braces = false` — brace-free guard clauses (`if (x) continue;`) are idiomatic and allowed.
+  - `IDE0058 = none` — KSP API methods (`AddAlarm`, `DeleteAlarm`) return `bool`; we intentionally discard it.
+  - `IDE0051 = none` — `PollLifeSupport` is invoked by Unity `InvokeRepeating` via string reflection; it is not unused.
+- **No unnecessary `using` directives**: `IDE0005` is active via `category-Style`. Child namespaces implicitly see their parent namespace — no `using LifeSupportAlarms;` needed in `Domain/`, `Repositories/`, or `Services/`.
 
 ## LifeSupportAlarmsCore — poll loop rules
 

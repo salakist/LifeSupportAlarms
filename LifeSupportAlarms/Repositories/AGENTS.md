@@ -40,7 +40,7 @@ Both together are unique. Format of `description`: `"{prefix}:{vessel.Id}"`.
 
 ### `Find(uint vesselPersistentId, string prefix)` → `FoundAlarm?`
 
-Iterates `AlarmClockScenario.Instance.alarms.Values`, casts to `AlarmTypeRaw`, matches `vesselId` and `description.StartsWith(prefix)`. Returns a `FoundAlarm` wrapping the match, or `null`.
+Iterates `AlarmClockScenario.Instance.alarms.Values`, uses `if (alarm is not AlarmTypeRaw raw) continue` pattern to skip non-raw alarms, matches `vesselId` and `description.StartsWith(prefix)`. Returns a `FoundAlarm` wrapping the match, or `null`.
 
 ### `Upsert(AlarmSpec spec, double now, double leadTimeSecs, AlarmAction alarmAction)`
 

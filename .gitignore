@@ -27,6 +27,9 @@ bld/
 *.dll
 *.pdb
 
+# Exception: committed DLL for distribution (built locally before tagging a release)
+!/LifeSupportAlarms.dll
+
 # .NET Core
 project.lock.json
 project.fragment.lock.json

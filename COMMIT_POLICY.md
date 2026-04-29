@@ -59,6 +59,36 @@ In addition, AI-assisted commits must include `[copilot]` at the end of the comm
 
 Do not force-push to `main` or any shared branch. Use `git revert` to undo merged changes.
 
+## Release Process
+
+Releases are published by pushing a version tag to `main`. The GitHub Actions workflow at `.github/workflows/release.yml` fires automatically and packages `LifeSupportAlarms.dll` + `LifeSupportAlarms.version` into `LifeSupportAlarms-vX.Y.Z.zip`.
+
+**Pre-tag checklist** — complete these steps in order before pushing a tag:
+
+1. **Build Release**:
+   ```
+   dotnet build LifeSupportAlarms\LifeSupportAlarms.csproj /p:Configuration=Release /v:minimal
+   ```
+   Confirm `LifeSupportAlarms.dll` is updated in the repo root.
+
+2. **Update version**: Edit `LifeSupportAlarms.version` — set `MAJOR`, `MINOR`, `PATCH` to match the new version number.
+
+3. **Commit**: Include both files in a single commit on `main`:
+   ```
+   chore(release): update DLL and version file for vX.Y.Z
+   ```
+
+4. **Tag and push**:
+   ```
+   git tag vX.Y.Z
+   git push origin vX.Y.Z
+   ```
+
+The workflow will create the GitHub release automatically with:
+- `LifeSupportAlarms-vX.Y.Z.zip` containing `GameData/LifeSupportAlarms/LifeSupportAlarms.dll` and `GameData/LifeSupportAlarms/LifeSupportAlarms.version`
+- Auto-generated release notes from commit messages since the previous tag
+- GitHub-native source code archives (zip + tar.gz)
+
 ## Pre-Commit Build Check
 
 Before committing, always run a Release build and verify it produces **no errors and no warnings**:

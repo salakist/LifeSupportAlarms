@@ -16,10 +16,14 @@ Instructions for AI coding agents working on the LifeSupportAlarms KSP mod.
 GameData/LifeSupportAlarms/          ← git root, KSP mod folder, solution root
 ├── .editorconfig
 ├── .gitignore
+├── .github/
+│   └── workflows/
+│       └── release.yml              ← publishes GitHub release on v* tag push
 ├── AGENTS.md                        ← this file
 ├── COMMIT_POLICY.md
 ├── README.md
-├── LifeSupportAlarms.dll            ← Release build output (gitignored)
+├── LifeSupportAlarms.dll            ← Release build output (committed; see COMMIT_POLICY.md)
+├── LifeSupportAlarms.version        ← AVC version file (CKAN / KSP-AVC compatibility)
 ├── LifeSupportAlarms.sln
 └── LifeSupportAlarms/               ← C# project folder
     ├── LifeSupportAlarms.csproj

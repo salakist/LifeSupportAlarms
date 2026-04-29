@@ -1,0 +1,21 @@
+{
+    "NAME": "LifeSupportAlarms",
+    "URL": "https://raw.githubusercontent.com/salakist/LifeSupportAlarms/main/LifeSupportAlarms.version",
+    "DOWNLOAD": "https://github.com/salakist/LifeSupportAlarms/releases/latest",
+    "CHANGE_LOG_URL": "https://github.com/salakist/LifeSupportAlarms/releases",
+    "VERSION": {
+        "MAJOR": 1,
+        "MINOR": 0,
+        "PATCH": 0
+    },
+    "KSP_VERSION_MIN": {
+        "MAJOR": 1,
+        "MINOR": 12,
+        "PATCH": 0
+    },
+    "KSP_VERSION_MAX": {
+        "MAJOR": 1,
+        "MINOR": 12,
+        "PATCH": 99
+    }
+}

@@ -7,6 +7,13 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/Dotnet.gitignore
 
+# IDE artifacts
+.vs/
+.vscode/
+
+# KSP/Unity reference assemblies (copy from your KSP install into lib/)
+lib/
+
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/

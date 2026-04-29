@@ -5,10 +5,10 @@ namespace LifeSupportAlarms.Domain
     internal static class AlarmPrefixes
     {
         internal const string Supplies = "[USILS-Supplies]";
-        internal const string EC       = "[USILS-EC]";
-        internal const string Hab      = "[USILS-Hab]";
-        internal const string Home     = "[USILS-Home]";
-        internal const string Grouped  = "[USILS-Grouped]";
+        internal const string EC = "[USILS-EC]";
+        internal const string Hab = "[USILS-Hab]";
+        internal const string Home = "[USILS-Home]";
+        internal const string Grouped = "[USILS-Grouped]";
 
         internal static readonly string[] AllResources =
             [Supplies, EC, Hab, Home];

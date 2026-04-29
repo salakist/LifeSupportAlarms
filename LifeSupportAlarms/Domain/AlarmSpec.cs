@@ -7,20 +7,20 @@ namespace LifeSupportAlarms.Domain
     // Pass to AlarmRepository.Upsert to create or refresh the corresponding KSP alarm.
     internal sealed class AlarmSpec
     {
-        internal string Prefix             { get; }
-        internal string Title              { get; }
-        internal double TimeLeft           { get; }
-        internal uint   VesselPersistentId { get; }
-        internal Guid   VesselGuid         { get; }
+        internal string Prefix { get; }
+        internal string Title { get; }
+        internal double TimeLeft { get; }
+        internal uint VesselPersistentId { get; }
+        internal Guid VesselGuid { get; }
 
         private AlarmSpec(string prefix, string title, double timeLeft,
             uint vesselPersistentId, Guid vesselGuid)
         {
-            Prefix             = prefix;
-            Title              = title;
-            TimeLeft           = timeLeft;
+            Prefix = prefix;
+            Title = title;
+            TimeLeft = timeLeft;
             VesselPersistentId = vesselPersistentId;
-            VesselGuid         = vesselGuid;
+            VesselGuid = vesselGuid;
         }
 
         // --- Factories ---------------------------------------------------------------
@@ -44,10 +44,10 @@ namespace LifeSupportAlarms.Domain
             vesselName + " " + prefix switch
             {
                 AlarmPrefixes.Supplies => "Supplies",
-                AlarmPrefixes.EC       => "Electric Charge",
-                AlarmPrefixes.Hab      => "Hab",
-                AlarmPrefixes.Home     => "Home",
-                _                      => prefix.Trim('[', ']').Replace("USILS-", "")
+                AlarmPrefixes.EC => "Electric Charge",
+                AlarmPrefixes.Hab => "Hab",
+                AlarmPrefixes.Home => "Home",
+                _ => prefix.Trim('[', ']').Replace("USILS-", "")
             };
     }
 }

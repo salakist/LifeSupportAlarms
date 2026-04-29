@@ -22,10 +22,10 @@ namespace LifeSupportAlarms
     {
         public void Start()
         {
-            var game = HighLogic.CurrentGame;
+            Game game = HighLogic.CurrentGame;
             if (game == null) return;
 
-            var psm = game.scenarios.Find(s => s.moduleName == typeof(LifeSupportScenario).Name);
+            ProtoScenarioModule psm = game.scenarios.Find(s => s.moduleName == nameof(LifeSupportScenario));
             if (psm == null)
             {
                 Debug.Log("[LifeSupportAlarms] LifeSupportScenario not found in game.scenarios � USI-LS may not be installed.");

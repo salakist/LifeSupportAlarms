@@ -10,7 +10,7 @@ namespace LifeSupportAlarms.Domain
     {
         private const double FloatTolerance = 1e-6;
 
-        private readonly Vessel             _vessel;
+        private readonly Vessel _vessel;
         private readonly VesselSupplyStatus _supply;
 
         internal TrackedVessel(Vessel vessel, VesselSupplyStatus supply)
@@ -19,9 +19,9 @@ namespace LifeSupportAlarms.Domain
             _supply = supply;
         }
 
-        internal string Name         => _vessel.vesselName;
-        internal uint   PersistentId => _vessel.persistentId;
-        internal Guid   Id           => _vessel.id;
+        internal string Name => _vessel.vesselName;
+        internal uint PersistentId => _vessel.persistentId;
+        internal Guid Id => _vessel.id;
 
         internal VesselResourceTimes GetResourceTimes(
             LifeSupportAlarmsSettings settings,
@@ -74,9 +74,9 @@ namespace LifeSupportAlarms.Domain
             out double earliestHab, out double earliestHome, out bool anyPenalty)
         {
             double habTotal = _supply.CachedHabTime;
-            earliestHab  = double.PositiveInfinity;
+            earliestHab = double.PositiveInfinity;
             earliestHome = double.PositiveInfinity;
-            anyPenalty   = false;
+            anyPenalty = false;
 
             List<ProtoCrewMember> crew = _vessel.GetVesselCrew();
             for (int i = 0; i < crew.Count; i++)
@@ -98,7 +98,7 @@ namespace LifeSupportAlarms.Domain
 
             if (!anyPenalty)
             {
-                earliestHab  = double.PositiveInfinity;
+                earliestHab = double.PositiveInfinity;
                 earliestHome = double.PositiveInfinity;
             }
         }
@@ -119,11 +119,7 @@ namespace LifeSupportAlarms.Domain
         }
 
         // Absorbed from ResourceTimeCalculator.IsIndefinite
-        private static bool IsIndefinite(ProtoCrewMember c, double timeLeft, LifeSupportConfig cfg)
-        {
-            if (timeLeft >= cfg.PermaHabTime) return true;
-            if (c.HasEffect("ExplorerSkill") && timeLeft >= cfg.ScoutHabTime) return true;
-            return false;
-        }
+        private static bool IsIndefinite(ProtoCrewMember c, double timeLeft, LifeSupportConfig cfg) =>
+            timeLeft >= cfg.PermaHabTime || (c.HasEffect("ExplorerSkill") && timeLeft >= cfg.ScoutHabTime);
     }
 }

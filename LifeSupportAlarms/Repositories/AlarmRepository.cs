@@ -15,8 +15,7 @@ namespace LifeSupportAlarms.Repositories
         {
             foreach (AlarmTypeBase alarm in AlarmClockScenario.Instance.alarms.Values)
             {
-                AlarmTypeRaw raw = alarm as AlarmTypeRaw;
-                if (raw == null) continue;
+                if (alarm is not AlarmTypeRaw raw) continue;
                 if (raw.vesselId != vesselPersistentId) continue;
                 if (raw.description != null && raw.description.StartsWith(prefix))
                     return new FoundAlarm(raw, prefix);
@@ -49,8 +48,9 @@ namespace LifeSupportAlarms.Repositories
             AlarmActions.WarpEnum warpAction = alarmAction switch
             {
                 AlarmAction.PauseGame => AlarmActions.WarpEnum.PauseGame,
-                AlarmAction.KillWarp  => AlarmActions.WarpEnum.KillWarp,
-                _                     => AlarmActions.WarpEnum.DoNothing
+                AlarmAction.KillWarp => AlarmActions.WarpEnum.KillWarp,
+                AlarmAction.DoNothing => AlarmActions.WarpEnum.DoNothing,
+                _ => AlarmActions.WarpEnum.DoNothing
             };
 
             if (existing != null
@@ -64,9 +64,9 @@ namespace LifeSupportAlarms.Repositories
             AlarmTypeRaw alarm = new()
             {
                 description = spec.Prefix + ":" + spec.VesselGuid,
-                actions     = { warp = warpAction, message = AlarmActions.MessageEnum.Yes },
-                ut          = alarmUT,
-                vesselId    = spec.VesselPersistentId
+                actions = { warp = warpAction, message = AlarmActions.MessageEnum.Yes },
+                ut = alarmUT,
+                vesselId = spec.VesselPersistentId
             };
             AlarmClockScenario.AddAlarm(alarm);
             // AddAlarm resets title to vessel name; override it after the call
@@ -74,7 +74,7 @@ namespace LifeSupportAlarms.Repositories
             // Force alarm-list UI to refresh the title via a transient fake alarm
             AlarmTypeRaw fake = new()
             {
-                ut      = alarm.ut + 1,
+                ut = alarm.ut + 1,
                 actions = { message = AlarmActions.MessageEnum.No, deleteWhenDone = true }
             };
             AlarmClockScenario.AddAlarm(fake);

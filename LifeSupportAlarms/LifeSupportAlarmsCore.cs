@@ -12,12 +12,12 @@ namespace LifeSupportAlarms
     public class LifeSupportAlarmsCore : MonoBehaviour
     {
         private VesselRepository _vesselRepo;
-        private AlarmService     _alarmService;
+        private AlarmService _alarmService;
 
         public void Start()
         {
             Debug.Log("[LifeSupportAlarms] Loaded");
-            _vesselRepo   = new VesselRepository();
+            _vesselRepo = new VesselRepository();
             _alarmService = new AlarmService(new AlarmRepository());
             InvokeRepeating("PollLifeSupport", 5f, 10f);
         }
@@ -33,7 +33,7 @@ namespace LifeSupportAlarms
                 return;
             }
 
-            double now          = Planetarium.GetUniversalTime();
+            double now = Planetarium.GetUniversalTime();
             double leadTimeSecs = settings.LeadTimeHours * 3600.0;
             LifeSupportConfig cfg = LifeSupportScenario.Instance.settings.GetSettings();
 
@@ -44,13 +44,10 @@ namespace LifeSupportAlarms
             }
         }
 
-        private static bool ValidatePrerequisites(LifeSupportAlarmsSettings settings)
-        {
-            if (settings == null) return false;
-            if (ReferenceEquals(LifeSupportScenario.Instance, null)) return false;
-            if (!LifeSupportScenario.Instance.settings.isLoaded())   return false;
-            if (AlarmClockScenario.Instance == null)                 return false;
-            return true;
-        }
+        private static bool ValidatePrerequisites(LifeSupportAlarmsSettings settings) =>
+            settings != null
+            && LifeSupportScenario.Instance is not null
+            && LifeSupportScenario.Instance.settings.isLoaded()
+            && AlarmClockScenario.Instance != null;
     }
 }

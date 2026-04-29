@@ -25,29 +25,16 @@ namespace LifeSupportAlarms.Domain
 
         // --- Factories ---------------------------------------------------------------
 
-        // Spec for a per-resource alarm. Title derived from prefix.
-        internal static AlarmSpec ForResource(TrackedVessel vessel, string prefix, double timeLeft) =>
-            new(prefix, ResourceTitle(vessel.Name, prefix), timeLeft, vessel.PersistentId, vessel.Id);
+        // Spec for a per-resource alarm. Title and prefix taken from the ResourceEntry.
+        internal static AlarmSpec ForResource(VesselData vessel, VesselData.ResourceEntry entry) =>
+            new(entry.AlarmPrefix, vessel.Name + " " + entry.ResourceLabel,
+                entry.SecondsLeft, vessel.PersistentId, vessel.VesselGuid);
 
         // Spec for a grouped alarm showing the earliest-expiring enabled resource.
-        internal static AlarmSpec ForGrouped(TrackedVessel vessel, double timeLeft, string criticalLabel)
+        internal static AlarmSpec ForGrouped(VesselData vessel, double timeLeft, string criticalLabel)
         {
             string title = vessel.Name + (criticalLabel.Length > 0 ? $" ({criticalLabel})" : "");
-            return new(AlarmPrefixes.Grouped, title, timeLeft, vessel.PersistentId, vessel.Id);
+            return new(AlarmPrefixes.Grouped, title, timeLeft, vessel.PersistentId, vessel.VesselGuid);
         }
-
-        // --- Private helpers ---------------------------------------------------------
-
-        // Maps a known prefix to its human-readable resource label.
-        // Falls back to stripping the bracket/namespace decoration for any future prefix.
-        private static string ResourceTitle(string vesselName, string prefix) =>
-            vesselName + " " + prefix switch
-            {
-                AlarmPrefixes.Supplies => "Supplies",
-                AlarmPrefixes.EC => "Electric Charge",
-                AlarmPrefixes.Hab => "Hab",
-                AlarmPrefixes.Home => "Home",
-                _ => prefix.Trim('[', ']').Replace("USILS-", "")
-            };
     }
 }

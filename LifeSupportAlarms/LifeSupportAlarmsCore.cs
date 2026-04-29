@@ -1,23 +1,28 @@
-using LifeSupport;
+using System.Collections.Generic;
 using UnityEngine;
 using LifeSupportAlarms.Domain;
+using LifeSupportAlarms.Providers;
 using LifeSupportAlarms.Repositories;
 using LifeSupportAlarms.Services;
 
 namespace LifeSupportAlarms
 {
     // Shared MonoBehaviour base -- subclassed by the scene-specific KSPAddon stubs.
-    // Responsible only for the poll loop: guards, vessel iteration, and delegating
-    // to VesselRepository and AlarmService.
+    // Responsible only for the poll loop: guards, provider iteration, and delegating to AlarmService.
     public class LifeSupportAlarmsCore : MonoBehaviour
     {
-        private VesselRepository _vesselRepo;
+        private ILifeSupportProvider[] _providers;
         private AlarmService _alarmService;
 
         public void Start()
         {
             Debug.Log("[LifeSupportAlarms] Loaded");
-            _vesselRepo = new VesselRepository();
+
+            List<ILifeSupportProvider> providers = [];
+            foreach (AssemblyLoader.LoadedAssembly a in AssemblyLoader.loadedAssemblies)
+                if (a.name == "USILifeSupport") { providers.Add(new UsiLsProvider()); break; }
+            _providers = [.. providers];
+
             _alarmService = new AlarmService(new AlarmRepository());
             InvokeRepeating("PollLifeSupport", 5f, 10f);
         }
@@ -35,19 +40,18 @@ namespace LifeSupportAlarms
 
             double now = Planetarium.GetUniversalTime();
             double leadTimeSecs = settings.LeadTimeHours * 3600.0;
-            LifeSupportConfig cfg = LifeSupportScenario.Instance.settings.GetSettings();
+            AlarmAction alarmAction = (AlarmAction)settings.AlarmAction;
+            bool grouped = settings.GroupAlarmsByVessel;
 
-            foreach (TrackedVessel vessel in _vesselRepo.GetCrewedVessels())
+            foreach (ILifeSupportProvider provider in _providers)
             {
-                VesselResourceTimes times = vessel.GetResourceTimes(settings, cfg, now);
-                _alarmService.Sync(vessel, times, settings, now, leadTimeSecs);
+                if (!provider.IsAvailable) continue;
+                foreach (VesselData vessel in provider.GetVesselData(settings, now))
+                    _alarmService.Sync(vessel, now, leadTimeSecs, alarmAction, grouped);
             }
         }
 
         private static bool ValidatePrerequisites(LifeSupportAlarmsSettings settings) =>
-            settings != null
-            && LifeSupportScenario.Instance is not null
-            && LifeSupportScenario.Instance.settings.isLoaded()
-            && AlarmClockScenario.Instance != null;
+            settings != null && AlarmClockScenario.Instance != null;
     }
 }

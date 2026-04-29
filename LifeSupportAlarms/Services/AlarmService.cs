@@ -12,36 +12,31 @@ namespace LifeSupportAlarms.Services
 
         internal AlarmService(AlarmRepository repo) => _repo = repo;
 
-        // Sync all alarms for one vessel based on computed resource times and current settings.
-        internal void Sync(TrackedVessel vessel, VesselResourceTimes times,
-            LifeSupportAlarmsSettings settings, double now, double leadTimeSecs)
+        // Sync all alarms for one vessel based on provider-supplied resource data.
+        internal void Sync(VesselData vessel, double now, double leadTimeSecs,
+            AlarmAction alarmAction, bool grouped)
         {
-            if (settings.GroupAlarmsByVessel)
-                SyncGrouped(vessel, times, settings, now, leadTimeSecs);
+            if (grouped)
+                SyncGrouped(vessel, now, leadTimeSecs, alarmAction);
             else
-                SyncIndividual(vessel, times, settings, now, leadTimeSecs);
+                SyncIndividual(vessel, now, leadTimeSecs, alarmAction);
         }
 
-        private void SyncGrouped(TrackedVessel vessel, VesselResourceTimes times,
-            LifeSupportAlarmsSettings settings, double now, double leadTimeSecs)
+        private void SyncGrouped(VesselData vessel, double now, double leadTimeSecs,
+            AlarmAction alarmAction)
         {
-            AlarmAction alarmAction = (AlarmAction)settings.AlarmAction;
             // Remove all per-resource alarms; maintain one grouped alarm per vessel
             foreach (string prefix in AlarmPrefixes.AllResources)
                 _repo.Delete(vessel.PersistentId, prefix);
 
-            (bool enabled, double time, string label)[] candidates =
-            [
-                (settings.EnableSuppliesAlarm, times.SuppliesLeft, "Supplies"),
-                (settings.EnableECAlarm, times.ECLeft, "Electric Charge"),
-                (settings.EnableHabAlarm, times.EarliestHab, "Hab"),
-                (settings.EnableHomeAlarm, times.EarliestHome, "Home"),
-            ];
-
             double earliest = double.PositiveInfinity;
             string criticalLabel = "";
-            foreach ((bool enabled, double time, string label) in candidates)
-                if (enabled && time < earliest) { earliest = time; criticalLabel = label; }
+            foreach (VesselData.ResourceEntry entry in vessel.Resources)
+                if (entry.Enabled && entry.SecondsLeft < earliest)
+                {
+                    earliest = entry.SecondsLeft;
+                    criticalLabel = entry.ResourceLabel;
+                }
 
             if (earliest < double.PositiveInfinity)
                 _repo.Upsert(AlarmSpec.ForGrouped(vessel, earliest, criticalLabel),
@@ -50,30 +45,15 @@ namespace LifeSupportAlarms.Services
                 _repo.Delete(vessel.PersistentId, AlarmPrefixes.Grouped);
         }
 
-        private void SyncIndividual(TrackedVessel vessel, VesselResourceTimes times,
-            LifeSupportAlarmsSettings settings, double now, double leadTimeSecs)
+        private void SyncIndividual(VesselData vessel, double now, double leadTimeSecs,
+            AlarmAction alarmAction)
         {
-            AlarmAction alarmAction = (AlarmAction)settings.AlarmAction;
             // Remove grouped alarm; maintain one alarm per resource type
             _repo.Delete(vessel.PersistentId, AlarmPrefixes.Grouped);
 
-            UpsertOrDelete(AlarmSpec.ForResource(vessel, AlarmPrefixes.Supplies, times.SuppliesLeft),
-                settings.EnableSuppliesAlarm, now, leadTimeSecs, alarmAction);
-            UpsertOrDelete(AlarmSpec.ForResource(vessel, AlarmPrefixes.EC, times.ECLeft),
-                settings.EnableECAlarm, now, leadTimeSecs, alarmAction);
-
-            if (times.AnyHabPenalty)
-            {
-                UpsertOrDelete(AlarmSpec.ForResource(vessel, AlarmPrefixes.Hab, times.EarliestHab),
-                    settings.EnableHabAlarm, now, leadTimeSecs, alarmAction);
-                UpsertOrDelete(AlarmSpec.ForResource(vessel, AlarmPrefixes.Home, times.EarliestHome),
-                    settings.EnableHomeAlarm, now, leadTimeSecs, alarmAction);
-            }
-            else
-            {
-                _repo.Delete(vessel.PersistentId, AlarmPrefixes.Hab);
-                _repo.Delete(vessel.PersistentId, AlarmPrefixes.Home);
-            }
+            foreach (VesselData.ResourceEntry entry in vessel.Resources)
+                UpsertOrDelete(AlarmSpec.ForResource(vessel, entry), entry.Enabled,
+                    now, leadTimeSecs, alarmAction);
         }
 
         // Remove all LifeSupportAlarms-managed alarms from every known vessel.
